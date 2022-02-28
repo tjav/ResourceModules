@@ -53,7 +53,9 @@ function Initialize-DeploymentRemoval {
         $removalSequence = @(
             'Microsoft.Insights/diagnosticSettings',
             'Microsoft.Resources/resourceGroups',
-            'Microsoft.Compute/virtualMachines'
+            'Microsoft.Compute/virtualMachines',
+            'Microsoft.Network/privateEndpoints/privateDnsZoneGroups',
+            'Microsoft.Network/privateEndpoints'
         )
         Write-Verbose ('Template file path: [{0}]' -f $templateFilePath) -Verbose
         Write-Verbose ('Module name: [{0}]' -f $moduleName) -Verbose
@@ -72,9 +74,7 @@ function Initialize-DeploymentRemoval {
                 'automationAccounts' {
                     $removalSequence += @(
                         'Microsoft.OperationsManagement/solutions',
-                        'Microsoft.OperationalInsights/workspaces/linkedServices',
-                        'Microsoft.Network/privateEndpoints/privateDnsZoneGroups',
-                        'Microsoft.Network/privateEndpoints'
+                        'Microsoft.OperationalInsights/workspaces/linkedServices'
                     )
                     break
                 }
