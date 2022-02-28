@@ -234,7 +234,8 @@ module storageAccount_privateEndpoints '.bicep/nested_privateEndpoint.bicep' = [
   name: '${uniqueString(deployment().name, location)}-Storage-PrivateEndpoints-${index}'
   params: {
     privateEndpointResourceId: storageAccount.id
-    privateEndpointVnetLocation: (empty(privateEndpoints) ? 'dummy' : reference(split(endpoint.subnetResourceId, '/subnets/')[0], '2020-06-01', 'Full').location)
+    // privateEndpointVnetId: endpoint.subnetResourceId
+    // privateEndpointVnetLocation: (empty(privateEndpoints) ? 'dummy' : reference(split(endpoint.subnetResourceId, '/subnets/')[0], '2020-06-01', 'Full').location)
     privateEndpointObj: endpoint
     tags: tags
   }

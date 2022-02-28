@@ -1,9 +1,11 @@
 param privateEndpointResourceId string
-param privateEndpointVnetLocation string
+// param privateEndpointVnetId string
+// param privateEndpointVnetLocation string
 param privateEndpointObj object
 param tags object
 
 var privateEndpointResourceName = last(split(privateEndpointResourceId, '/'))
+
 var privateEndpoint_var = {
   name: (contains(privateEndpointObj, 'name') ? (empty(privateEndpointObj.name) ? '${privateEndpointResourceName}-${privateEndpointObj.service}' : privateEndpointObj.name) : '${privateEndpointResourceName}-${privateEndpointObj.service}')
   subnetResourceId: privateEndpointObj.subnetResourceId
@@ -14,9 +16,15 @@ var privateEndpoint_var = {
   customDnsConfigs: (contains(privateEndpointObj, 'customDnsConfigs') ? (empty(privateEndpointObj.customDnsConfigs) ? null : privateEndpointObj.customDnsConfigs) : null)
 }
 
+// resource subnet 'Microsoft.Network/virtualNetworks/subnets@2021-03-01' existing = {
+//   name: last(split(privateEndpointVnetId, '/'))
+
+// }
+
 resource privateEndpoint 'Microsoft.Network/privateEndpoints@2021-05-01' = {
   name: privateEndpoint_var.name
-  location: privateEndpointVnetLocation
+  // location: privateEndpointVnetLocation
+  // location: 'westeurope'
   tags: tags
   properties: {
     privateLinkServiceConnections: [
