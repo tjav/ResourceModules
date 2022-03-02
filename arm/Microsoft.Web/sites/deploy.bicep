@@ -69,6 +69,9 @@ param lock string = 'NotSpecified'
 @description('Optional. Configuration details for private endpoints.')
 param privateEndpoints array = []
 
+@description('Optional. Configuration for deployment slots for an app.')
+param slots array = []
+
 @description('Optional. Tags of the resource.')
 param tags object = {}
 
@@ -153,7 +156,7 @@ module pid_cuaId '.bicep/nested_cuaId.bicep' = if (!empty(cuaId)) {
   params: {}
 }
 
-resource appServicePlanExisting 'Microsoft.Web/serverfarms@2021-02-01' existing = if (!empty(appServicePlanId)) {
+resource appServicePlanExisting 'Microsoft.Web/serverfarms@2021-03-01' existing = if (!empty(appServicePlanId)) {
   name: last(split(appServicePlanId, '/'))
   scope: resourceGroup(split(appServicePlanId, '/')[2], split(appServicePlanId, '/')[4])
 }
@@ -187,7 +190,7 @@ module appInsight '.bicep/nested_components.bicep' = if (!empty(appInsightObject
   }
 }
 
-resource app 'Microsoft.Web/sites@2020-12-01' = {
+resource app 'Microsoft.Web/sites@2021-03-01' = {
   name: name
   location: location
   kind: kind
@@ -215,6 +218,24 @@ module app_appsettings 'config/deploy.bicep' = {
     functionsExtensionVersion: !empty(functionsExtensionVersion) ? functionsExtensionVersion : '~3'
   }
 }
+
+module app_slots 'slots/deploy.bicep' = [for (slot, index) in slots: {
+  name: '${uniqueString(deployment().name, location)}-Site-Slot-${index}'
+  params: {
+    appName: name
+    name: slot.name
+    location: location
+    appServicePlanId: !empty(appServicePlanId) ? appServicePlanExisting.id : appServicePlan.outputs.resourceId
+    httpsOnly: slot.httpsOnly
+    appServiceEnvironmentId: !empty(appServiceEnvironmentId) ? appServiceEnvironmentId : ''
+    clientAffinityEnabled: slot.clientAffinityEnabled
+    siteConfig: slot.siteConfig
+    storageAccountId: !empty(storageAccountId) ? storageAccountId : ''
+    appInsightId: !empty(appInsightId) ? appInsightId : !empty(appInsightObject) ? appInsight.outputs.resourceId : ''
+    functionsWorkerRuntime: !empty(functionsWorkerRuntime) ? functionsWorkerRuntime : ''
+    functionsExtensionVersion: !empty(functionsExtensionVersion) ? functionsExtensionVersion : '~3'
+  }
+}]
 
 resource app_lock 'Microsoft.Authorization/locks@2017-04-01' = if (lock != 'NotSpecified') {
   name: '${app.name}-${lock}-lock'

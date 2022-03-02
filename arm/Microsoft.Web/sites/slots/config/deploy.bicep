@@ -7,6 +7,9 @@ param name string
 @description('Required. Name of the site parent resource.')
 param appName string
 
+@description('Required. Name of the slot parent resource.')
+param slotName string
+
 @description('Optional. Required if app of kind functionapp. Resource ID of the storage account to manage triggers and logging function executions.')
 param storageAccountId string = ''
 
@@ -35,6 +38,14 @@ module pid_cuaId '.bicep/nested_cuaId.bicep' = if (!empty(cuaId)) {
   params: {}
 }
 
+resource app 'Microsoft.Web/sites@2021-03-01' existing = {
+  name: appName
+
+  resource slot 'slots@2021-03-01' existing = {
+    name: slotName
+  }
+}
+
 resource appInsight 'microsoft.insights/components@2020-02-02' existing = if (!empty(appInsightId)) {
   name: last(split(appInsightId, '/'))
   scope: resourceGroup(split(appInsightId, '/')[2], split(appInsightId, '/')[4])
@@ -45,13 +56,9 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-02-01' existing 
   scope: resourceGroup(split(storageAccountId, '/')[2], split(storageAccountId, '/')[4])
 }
 
-resource app 'Microsoft.Web/sites@2021-03-01' existing = {
-  name: appName
-}
-
-resource config 'Microsoft.Web/sites/config@2021-03-01' = {
+resource config 'Microsoft.Web/sites/slots/config@2021-03-01' = {
   name: name
-  parent: app
+  parent: app::slot
   properties: {
     AzureWebJobsStorage: !empty(storageAccountId) ? 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};' : any(null)
     AzureWebJobsDashboard: !empty(storageAccountId) ? 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};' : any(null)
