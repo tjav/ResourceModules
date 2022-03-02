@@ -72,6 +72,9 @@ param privateEndpoints array = []
 @description('Optional. Configuration for deployment slots for an app.')
 param slots array = []
 
+@description('The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first.')
+param subnetId string
+
 @description('Optional. Tags of the resource.')
 param tags object = {}
 
@@ -236,6 +239,15 @@ module app_slots 'slots/deploy.bicep' = [for (slot, index) in slots: {
     functionsExtensionVersion: !empty(functionsExtensionVersion) ? functionsExtensionVersion : '~3'
   }
 }]
+
+module app_networkConfig 'networkConfig/deploy.bicep' = if (!empty(subnetId)) {
+  name: '${uniqueString(deployment().name, location)}-Network-Config'
+  params: {
+    name: 'virtualNetwork'
+    appName: app.name
+    subnetId: subnetId
+  }
+}
 
 resource app_lock 'Microsoft.Authorization/locks@2017-04-01' = if (lock != 'NotSpecified') {
   name: '${app.name}-${lock}-lock'
