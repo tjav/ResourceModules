@@ -6,7 +6,7 @@ This module deploys a site config resource.
 
 | Resource Type | API Version |
 | :-- | :-- |
-| `Microsoft.Web/sites/config` | 2021-02-01 |
+| `Microsoft.Web/sites/config` | 2021-03-01 |
 
 ## Parameters
 

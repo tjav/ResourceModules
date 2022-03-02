@@ -1,4 +1,4 @@
-@description('Required. Name of the site config.')
+@description('Required. Name of the site network config.')
 @allowed([
   'virtualNetwork'
 ])

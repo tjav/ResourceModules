@@ -1,4 +1,4 @@
-# Web Site Config `[Microsoft.Web/sites/config]`
+# Web Site Config `[Microsoft.Web/sites/slots/config]`
 
 This module deploys a site config resource.
 
@@ -6,7 +6,7 @@ This module deploys a site config resource.
 
 | Resource Type | API Version |
 | :-- | :-- |
-| `Microsoft.Web/sites/config` | 2021-02-01 |
+| `Microsoft.Web/sites/slots/config` | 2021-03-01 |
 
 ## Parameters
 
@@ -18,6 +18,7 @@ This module deploys a site config resource.
 | `functionsExtensionVersion` | string | `~3` |  | Optional. Version of the function extension. |
 | `functionsWorkerRuntime` | string |  | `[dotnet, node, python, java, powershell, ]` | Optional. Runtime of the function worker. |
 | `name` | string |  | `[appsettings]` | Required. Name of the site config. |
+| `slotName` | string |  |  | Required. Name of the slot parent resource. |
 | `storageAccountId` | string |  |  | Optional. Required if app of kind functionapp. Resource ID of the storage account to manage triggers and logging function executions. |
 
 ## Outputs
@@ -30,4 +31,4 @@ This module deploys a site config resource.
 
 ## Template references
 
-- ['sites/config' Parent Documentation](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/sites)
+- ['sites/slots/config' Parent Documentation](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/sites)
