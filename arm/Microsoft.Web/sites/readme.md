@@ -13,8 +13,11 @@ This module deploys a web or function app.
 | `Microsoft.Network/privateEndpoints` | 2021-05-01 |
 | `Microsoft.Network/privateEndpoints/privateDnsZoneGroups` | 2021-05-01 |
 | `Microsoft.Web/serverfarms` | 2021-02-01 |
-| `Microsoft.Web/sites` | 2020-12-01 |
-| `Microsoft.Web/sites/config` | 2021-02-01 |
+| `Microsoft.Web/sites` | 2021-03-01 |
+| `Microsoft.Web/sites/config` | 2021-03-01 |
+| `Microsoft.Web/sites/networkConfig` | 2021-03-01 |
+| `Microsoft.Web/sites/slots` | 2021-03-01 |
+| `Microsoft.Web/sites/slots/config` | 2021-03-01 |
 
 ## Parameters
 
@@ -44,8 +47,10 @@ This module deploys a web or function app.
 | `privateEndpoints` | array | `[]` |  | Optional. Configuration details for private endpoints. |
 | `roleAssignments` | array | `[]` |  | Optional. Array of role assignment objects that contain the 'roleDefinitionIdOrName' and 'principalId' to define RBAC role assignments on this resource. In the roleDefinitionIdOrName attribute, you can provide either the display name of the role definition, or its fully qualified ID in the following format: '/providers/Microsoft.Authorization/roleDefinitions/c2f4ef07-c644-48eb-af81-4b1b4947fb11'. |
 | `siteConfig` | object | `{object}` |  | Optional. Configuration of the app. |
+| `slots` | _[slots](slots/readme.md)_ array | `[]` |  | Optional. Configuration for deployment slots for an app. |
 | `storageAccountId` | string |  |  | Optional. Required if functionapp kind. The resource ID of the storage account to manage triggers and logging function executions. |
-| `systemAssignedIdentity` | bool |  |  | Optional. Enables system assigned managed identity on the resource. |
+| `subnetId` | string |  |  | The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first. |
+| `systemAssignedIdentity` | bool | `False` |  | Optional. Enables system assigned managed identity on the resource. |
 | `tags` | object | `{object}` |  | Optional. Tags of the resource. |
 | `userAssignedIdentities` | object | `{object}` |  | Optional. The ID(s) to assign to the resource. |
 
@@ -185,11 +190,14 @@ You can specify multiple user assigned identities to a resource by providing add
 ## Template references
 
 - ['sites/config' Parent Documentation](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/sites)
+- ['sites/slots/config' Parent Documentation](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/sites)
 - [Components](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Insights/2020-02-02/components)
 - [Diagnosticsettings](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Insights/2021-05-01-preview/diagnosticSettings)
 - [Locks](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Authorization/2017-04-01/locks)
-- [Privateendpoints](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Network/2021-03-01/privateEndpoints)
-- [Privateendpoints/Privatednszonegroups](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Network/2021-03-01/privateEndpoints/privateDnsZoneGroups)
+- [Privateendpoints](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Network/2021-05-01/privateEndpoints)
+- [Privateendpoints/Privatednszonegroups](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Network/2021-05-01/privateEndpoints/privateDnsZoneGroups)
 - [Roleassignments](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Authorization/roleAssignments)
 - [Serverfarms](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/2021-02-01/serverfarms)
-- [Sites](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/2020-12-01/sites)
+- [Sites](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/2021-03-01/sites)
+- [Sites/Networkconfig](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/2021-03-01/sites/networkConfig)
+- [Sites/Slots](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/2021-03-01/sites/slots)
