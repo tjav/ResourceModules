@@ -33,6 +33,9 @@ module managementGroup_rbac '.bicep/nested_rbac.bicep' = [for (roleAssignment, i
     resourceName: managementGroup.name
   }
   scope: managementGroup
+  dependsOn: [
+    managementGroup
+  ]
 }]
 
 @description('The name of the management group')
