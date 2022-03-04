@@ -10,16 +10,17 @@
         },
         "parentId": {
             "value": "<<managementGroupId>>"
-        },
-        "roleAssignments": {
-            "value": [
-                {
-                    "roleDefinitionIdOrName": "Reader",
-                    "principalIds": [
-                        "<<deploymentSpId>>"
-                    ]
-                }
-            ]
         }
+        // ,
+        // "roleAssignments": {
+        //     "value": [
+        //         {
+        //             "roleDefinitionIdOrName": "Reader",
+        //             "principalIds": [
+        //                 "<<deploymentSpId>>"
+        //             ]
+        //         }
+        //     ]
+        // }
     }
 }
