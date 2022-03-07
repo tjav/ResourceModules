@@ -55,8 +55,8 @@ resource config 'Microsoft.Web/sites/config@2021-03-01' = {
   properties: {
     AzureWebJobsStorage: !empty(storageAccountId) ? 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};' : any(null)
     AzureWebJobsDashboard: !empty(storageAccountId) ? 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};' : any(null)
-    FUNCTIONS_EXTENSION_VERSION: app.kind == 'functionapp' && !empty(functionsExtensionVersion) ? functionsExtensionVersion : any(null)
-    FUNCTIONS_WORKER_RUNTIME: app.kind == 'functionapp' && !empty(functionsWorkerRuntime) ? functionsWorkerRuntime : any(null)
+    FUNCTIONS_EXTENSION_VERSION: (app.kind == 'functionapp' || app.kind == 'functionapp,linux') && !empty(functionsExtensionVersion) ? functionsExtensionVersion : any(null)
+    FUNCTIONS_WORKER_RUNTIME: (app.kind == 'functionapp' || app.kind == 'functionapp,linux') && !empty(functionsWorkerRuntime) ? functionsWorkerRuntime : any(null)
     APPINSIGHTS_INSTRUMENTATIONKEY: !empty(appInsightId) ? appInsight.properties.InstrumentationKey : ''
     APPLICATIONINSIGHTS_CONNECTION_STRING: !empty(appInsightId) ? appInsight.properties.ConnectionString : ''
   }

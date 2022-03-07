@@ -31,6 +31,9 @@ param maximumElasticWorkerCount int = 1
 @description('Optional. Scaling worker count.')
 param targetWorkerCount int = 0
 
+@description('Optional. Enable availability zone balancing for the App Service Plan.')
+param zoneRedundant bool = false
+
 @description('Optional. The instance size of the hosting plan (small, medium, or large).')
 @allowed([
   0
@@ -79,6 +82,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-02-01' = {
     reserved: serverOS == 'Linux'
     targetWorkerCount: targetWorkerCount
     targetWorkerSizeId: targetWorkerSize
+    zoneRedundant: zoneRedundant
   }
 }
 

@@ -7,6 +7,7 @@ param location string = resourceGroup().location
 @description('Required. Type of site to deploy.')
 @allowed([
   'functionapp'
+  'functionapp,linux'
   'app'
 ])
 param kind string
@@ -35,6 +36,10 @@ param storageAccountId string = ''
 param functionsWorkerRuntime string = ''
 
 @description('Optional. Version if the function extension.')
+@allowed([
+  '~3'
+  '~4'
+])
 param functionsExtensionVersion string = '~3'
 
 @description('Optional. The resource ID of the app service plan to use for the site. If not provided, the appServicePlanObject is used to create a new plan.')
@@ -110,7 +115,7 @@ param diagnosticEventHubName string = ''
   'AppServiceAuditLogs'
   'FunctionAppLogs'
 ])
-param logsToEnable array = kind == 'functionapp' ? [
+param logsToEnable array = kind == 'functionapp' || kind == 'functionapp,linux' ? [
   'FunctionAppLogs'
 ] : [
   'AppServiceHTTPLogs'
@@ -202,6 +207,7 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
   properties: {
     serverFarmId: !empty(appServicePlanId) ? appServicePlanExisting.id : appServicePlan.outputs.resourceId
     httpsOnly: httpsOnly
+    reserved: kind == 'functionapp,linux' ? true : null
     hostingEnvironmentProfile: !empty(appServiceEnvironmentId) ? {
       id: appServiceEnvironmentId
     } : null
@@ -228,15 +234,23 @@ module app_slots 'slots/deploy.bicep' = [for (slot, index) in slots: {
     appName: name
     name: slot.name
     location: location
+    kind: kind
     appServicePlanId: !empty(appServicePlanId) ? appServicePlanExisting.id : appServicePlan.outputs.resourceId
-    httpsOnly: slot.httpsOnly
+    httpsOnly: contains(slot, 'httpsOnly') ? slot.httpsOnly : httpsOnly
     appServiceEnvironmentId: !empty(appServiceEnvironmentId) ? appServiceEnvironmentId : ''
-    clientAffinityEnabled: slot.clientAffinityEnabled
-    siteConfig: slot.siteConfig
+    clientAffinityEnabled: contains(slot, 'clientAffinityEnabled') ? slot.clientAffinityEnabled : clientAffinityEnabled
+    siteConfig: contains(slot, 'siteConfig') ? slot.siteConfig : ''
     storageAccountId: !empty(storageAccountId) ? storageAccountId : ''
+    subnetId: contains(slot, 'subnetId') ? slot.subnetId : !empty(subnetId) ? subnetId : ''
     appInsightId: !empty(appInsightId) ? appInsightId : !empty(appInsightObject) ? appInsight.outputs.resourceId : ''
     functionsWorkerRuntime: !empty(functionsWorkerRuntime) ? functionsWorkerRuntime : ''
     functionsExtensionVersion: !empty(functionsExtensionVersion) ? functionsExtensionVersion : '~3'
+    diagnosticStorageAccountId: contains(slot, 'diagnosticStorageAccountId') ? slot.diagnosticStorageAccountId : ''
+    diagnosticWorkspaceId: contains(slot, 'diagnosticWorkspaceId') ? slot.diagnosticWorkspaceId : ''
+    diagnosticEventHubAuthorizationRuleId: contains(slot, 'diagnosticEventHubAuthorizationRuleId') ? slot.diagnosticEventHubAuthorizationRuleId : ''
+    diagnosticEventHubName: contains(slot, 'diagnosticEventHubName') ? slot.diagnosticEventHubName : ''
+    metricsToEnable: metricsToEnable
+    logsToEnable: logsToEnable
   }
 }]
 

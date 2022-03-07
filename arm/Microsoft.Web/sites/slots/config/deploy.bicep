@@ -62,18 +62,18 @@ resource config 'Microsoft.Web/sites/slots/config@2021-03-01' = {
   properties: {
     AzureWebJobsStorage: !empty(storageAccountId) ? 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};' : any(null)
     AzureWebJobsDashboard: !empty(storageAccountId) ? 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};' : any(null)
-    FUNCTIONS_EXTENSION_VERSION: app.kind == 'functionapp' && !empty(functionsExtensionVersion) ? functionsExtensionVersion : any(null)
-    FUNCTIONS_WORKER_RUNTIME: app.kind == 'functionapp' && !empty(functionsWorkerRuntime) ? functionsWorkerRuntime : any(null)
+    FUNCTIONS_EXTENSION_VERSION: (app.kind == 'functionapp' || app.kind == 'functionapp,linux') && !empty(functionsExtensionVersion) ? functionsExtensionVersion : any(null)
+    FUNCTIONS_WORKER_RUNTIME: (app.kind == 'functionapp' || app.kind == 'functionapp,linux') && !empty(functionsWorkerRuntime) ? functionsWorkerRuntime : any(null)
     APPINSIGHTS_INSTRUMENTATIONKEY: !empty(appInsightId) ? appInsight.properties.InstrumentationKey : ''
     APPLICATIONINSIGHTS_CONNECTION_STRING: !empty(appInsightId) ? appInsight.properties.ConnectionString : ''
   }
 }
 
-@description('The name of the site config.')
+@description('The name of the slot config.')
 output name string = config.name
 
-@description('The resource ID of the site config.')
+@description('The resource ID of the slot config.')
 output resourceId string = config.id
 
-@description('The resource group the site config was deployed into.')
+@description('The resource group the slot config was deployed into.')
 output resourceGroupName string = resourceGroup().name

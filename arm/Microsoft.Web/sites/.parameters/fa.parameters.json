@@ -6,7 +6,7 @@
             "value": "<<namePrefix>>-az-fa-x-001"
         },
         "kind": {
-            "value": "functionapp"
+            "value": "functionapp,linux"
         },
         "appServicePlanObject": {
             "value": {
@@ -24,14 +24,29 @@
         },
         "siteConfig": {
             "value": {
-                "alwaysOn": true
+                "alwaysOn": true,
+                "linuxFxVersion": "NODE|14"
             }
+        },
+        "slots": {
+            "value": [
+                {
+                    "name": "<<namePrefix>>-az-fa-x-001-slot",
+                    "httpOnly": true,
+                    "siteConfig": {
+                        "alwaysOn": true,
+                        "linuxFxVersion": "NODE|14"
+                    },
+                    "diagnosticWorkspaceId": "/subscriptions/<<subscriptionId>>/resourcegroups/validation-rg/providers/microsoft.operationalinsights/workspaces/adp-<<namePrefix>>-az-law-x-001",
+                    "diagnosticLogsRetentionInDays": 7
+                }
+            ]
         },
         "storageAccountId": {
             "value": "/subscriptions/<<subscriptionId>>/resourceGroups/validation-rg/providers/Microsoft.Storage/storageAccounts/adp<<namePrefix>>azsafa001"
         },
         "functionsWorkerRuntime": {
-            "value": "powershell"
+            "value": "node"
         },
         "systemAssignedIdentity": {
             "value": true
