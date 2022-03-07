@@ -18,6 +18,7 @@ This module deploys a web or function app.
 | `Microsoft.Web/sites/networkConfig` | 2021-03-01 |
 | `Microsoft.Web/sites/slots` | 2021-03-01 |
 | `Microsoft.Web/sites/slots/config` | 2021-03-01 |
+| `Microsoft.Web/sites/slots/networkConfig` | 2021-03-01 |
 
 ## Parameters
 
@@ -35,13 +36,13 @@ This module deploys a web or function app.
 | `diagnosticLogsRetentionInDays` | int | `365` |  | Optional. Specifies the number of days that logs will be kept for; a value of 0 will retain data indefinitely. |
 | `diagnosticStorageAccountId` | string |  |  | Optional. Resource ID of the diagnostic storage account. |
 | `diagnosticWorkspaceId` | string |  |  | Optional. Resource ID of log analytics workspace. |
-| `functionsExtensionVersion` | string | `~3` |  | Optional. Version if the function extension. |
+| `functionsExtensionVersion` | string | `~3` | `[~3, ~4]` | Optional. Version if the function extension. |
 | `functionsWorkerRuntime` | string |  | `[dotnet, node, python, java, powershell, ]` | Optional. Runtime of the function worker. |
 | `httpsOnly` | bool | `True` |  | Optional. Configures a site to accept only HTTPS requests. Issues redirect for HTTP requests. |
-| `kind` | string |  | `[functionapp, app]` | Required. Type of site to deploy. |
+| `kind` | string |  | `[functionapp, functionapp,linux, app]` | Required. Type of site to deploy. |
 | `location` | string | `[resourceGroup().location]` |  | Optional. Location for all Resources. |
 | `lock` | string | `NotSpecified` | `[CanNotDelete, NotSpecified, ReadOnly]` | Optional. Specify the type of lock. |
-| `logsToEnable` | array | `[if(equals(parameters('kind'), 'functionapp'), createArray('FunctionAppLogs'), createArray('AppServiceHTTPLogs', 'AppServiceConsoleLogs', 'AppServiceAppLogs', 'AppServiceFileAuditLogs', 'AppServiceAuditLogs'))]` | `[AppServiceHTTPLogs, AppServiceConsoleLogs, AppServiceAppLogs, AppServiceFileAuditLogs, AppServiceAuditLogs, FunctionAppLogs]` | Optional. The name of logs that will be streamed. |
+| `logsToEnable` | array | `[if(or(equals(parameters('kind'), 'functionapp'), equals(parameters('kind'), 'functionapp,linux')), createArray('FunctionAppLogs'), createArray('AppServiceHTTPLogs', 'AppServiceConsoleLogs', 'AppServiceAppLogs', 'AppServiceFileAuditLogs', 'AppServiceAuditLogs'))]` | `[AppServiceHTTPLogs, AppServiceConsoleLogs, AppServiceAppLogs, AppServiceFileAuditLogs, AppServiceAuditLogs, FunctionAppLogs]` | Optional. The name of logs that will be streamed. |
 | `metricsToEnable` | array | `[AllMetrics]` | `[AllMetrics]` | Optional. The name of metrics that will be streamed. |
 | `name` | string |  |  | Required. Name of the site. |
 | `privateEndpoints` | array | `[]` |  | Optional. Configuration details for private endpoints. |
@@ -201,3 +202,4 @@ You can specify multiple user assigned identities to a resource by providing add
 - [Sites](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/2021-03-01/sites)
 - [Sites/Networkconfig](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/2021-03-01/sites/networkConfig)
 - [Sites/Slots](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/2021-03-01/sites/slots)
+- [Sites/Slots/Networkconfig](https://docs.microsoft.com/en-us/azure/templates/Microsoft.Web/2021-03-01/sites/slots/networkConfig)
