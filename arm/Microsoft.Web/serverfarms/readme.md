@@ -28,6 +28,7 @@ This module deploys an app service plan.
 | `targetWorkerCount` | int | `0` |  | Optional. Scaling worker count. |
 | `targetWorkerSize` | int | `0` | `[0, 1, 2]` | Optional. The instance size of the hosting plan (small, medium, or large). |
 | `workerTierName` | string |  |  | Optional. Target worker tier assigned to the App Service plan. |
+| `zoneRedundant` | bool | `False` |  | Optional. Enable availability zone balancing for the App Service Plan. |
 
 ### Parameter Usage: `sku`
 
