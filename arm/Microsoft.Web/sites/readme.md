@@ -50,7 +50,7 @@ This module deploys a web or function app.
 | `siteConfig` | object | `{object}` |  | Optional. Configuration of the app. |
 | `slots` | _[slots](slots/readme.md)_ array | `[]` |  | Optional. Configuration for deployment slots for an app. |
 | `storageAccountId` | string |  |  | Optional. Required if functionapp kind. The resource ID of the storage account to manage triggers and logging function executions. |
-| `subnetId` | string |  |  | The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first. |
+| `subnetId` | string |  |  | Optional. The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first. |
 | `systemAssignedIdentity` | bool | `False` |  | Optional. Enables system assigned managed identity on the resource. |
 | `tags` | object | `{object}` |  | Optional. Tags of the resource. |
 | `userAssignedIdentities` | object | `{object}` |  | Optional. The ID(s) to assign to the resource. |

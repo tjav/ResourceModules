@@ -15,7 +15,7 @@ This module deploys Web App Sites Network Configuration for Virtual Network Inte
 | `appName` | string |  |  | Required. Name of the site parent resource. |
 | `cuaId` | string |  |  | Optional. Customer Usage Attribution ID (GUID). This GUID must be previously registered. |
 | `name` | string |  | `[virtualNetwork]` | Required. Name of the site network config. |
-| `subnetId` | string |  |  | The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first. |
+| `subnetId` | string |  |  | Required. The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first. |
 
 
 ## Outputs

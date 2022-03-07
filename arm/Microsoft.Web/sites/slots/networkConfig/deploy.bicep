@@ -10,7 +10,7 @@ param appName string
 @description('Required. Name of the slot parent resource.')
 param slotName string
 
-@description('The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first.')
+@description('Required. The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first.')
 param subnetId string
 
 @description('Optional. Customer Usage Attribution ID (GUID). This GUID must be previously registered.')

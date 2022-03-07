@@ -36,7 +36,7 @@ param appServicePlanId string = ''
 @description('Optional. The resource ID of the app service environment to use for this resource.')
 param appServiceEnvironmentId string = ''
 
-@description('The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first.')
+@description('Optional. The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first.')
 param subnetId string
 
 @description('Optional. Runtime of the function worker.')

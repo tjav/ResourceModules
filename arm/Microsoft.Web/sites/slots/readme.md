@@ -36,7 +36,7 @@ This module deploys Web Sites Slots.
 | `name` | string |  |  | Required. Name of the slot. |
 | `siteConfig` | object | `{object}` |  | Optional. Configuration of the app. |
 | `storageAccountId` | string |  |  | Optional. Required if functionapp kind. The resource ID of the storage account to manage triggers and logging function executions. |
-| `subnetId` | string |  |  | The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first. |
+| `subnetId` | string |  |  | Optional. The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first. |
 
 ## Outputs
 

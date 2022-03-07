@@ -77,7 +77,7 @@ param privateEndpoints array = []
 @description('Optional. Configuration for deployment slots for an app.')
 param slots array = []
 
-@description('The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first.')
+@description('Optional. The Virtual Network subnet resource ID. This is the subnet that this Web App will join. This subnet must have a delegation to Microsoft.Web/serverFarms defined first.')
 param subnetId string
 
 @description('Optional. Tags of the resource.')
