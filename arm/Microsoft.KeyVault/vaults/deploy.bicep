@@ -9,6 +9,16 @@ param location string = resourceGroup().location
 param accessPolicies array = []
 
 @description('Optional. All secrets to create')
+@metadata({
+  name: 'secret.name'
+  value: 'secret.value'
+  attributesEnabled: 'secret.attributesEnabled'
+  attributesExp: 'secret.attributesExp'
+  attributesNbf: 'secret.attributesNbf'
+  contentType: 'secret.contentType'
+  tags: 'secret.tags'
+  roleAssignments: 'secret.roleAssignments'
+})
 @secure()
 param secrets object = {}
 
