@@ -18,249 +18,207 @@ param serviceShort string = 'vmpar'
 // Deployments //
 // =========== //
 
-module resourceGroup '../../../Microsoft.Resources/resourceGroups/deploy.bicep' = {
-  name: '${uniqueString(deployment().name, location)}-rg'
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+  name: resourceGroupName
+  location: location
+}
+
+module diagnosticDependencies './.bicep/diagnostic.dependencies.bicep' = {
+  scope: resourceGroup
+  name: '${uniqueString(deployment().name, location)}-diagDep'
   params: {
-    name: resourceGroupName
+    serviceShort: serviceShort
     location: location
   }
 }
 
-module managedIdentity '../../../Microsoft.ManagedIdentity/userAssignedIdentities/deploy.bicep' = {
-  scope: az.resourceGroup(resourceGroupName)
-  name: '${uniqueString(deployment().name, location)}-mi'
+module resourceGroupResources '.bicep/resourceGroupResources.bicep' = {
+  scope: resourceGroup
+  name: '${uniqueString(deployment().name, location)}-rgresources'
   params: {
-    name: 'adp-sxx-msi-${serviceShort}-01'
     location: location
+    serviceShort: serviceShort
   }
-  dependsOn: [
-    resourceGroup
-  ]
 }
 
-module storageAccount '../../../Microsoft.Storage/storageAccounts/deploy.bicep' = {
-  scope: az.resourceGroup(resourceGroupName)
-  name: '${uniqueString(deployment().name, location)}-sa'
+resource dependencyKeyVaultKey 'Microsoft.KeyVault/vaults/keys@2021-11-01-preview' existing = {
+  name: split(resourceGroupResources.outputs.keyVaultResourceId, '/')[-1]
+  scope: resourceGroup
+}
+
+////////////////////
+//   Test cases   //
+////////////////////
+
+module testLinMin '../deploy.bicep' = {
+  scope: resourceGroup
+  name: '${uniqueString(deployment().name, location)}-testLinMin'
   params: {
-    name: 'adpsxxazsa${serviceShort}01'
-    storageAccountKind: 'StorageV2'
-    storageAccountSku: 'Standard_LRS'
-    allowBlobPublicAccess: false
-    blobServices: {
-      containers: [
-        {
-          name: 'scripts'
-          publicAccess: 'None'
-        }
-      ]
+    location: location
+    name: '${serviceShort}-vm-linux-min-01'
+    adminUsername: 'localAdminUser'
+    imageReference: {
+      publisher: 'Canonical'
+      offer: 'UbuntuServer'
+      sku: '18.04-LTS'
+      version: 'latest'
     }
-    roleAssignments: [
-      // Required to allow the MSI to upload files to fetch the storage account context to upload files to the container
+    nicConfigurations: [
       {
-        roleDefinitionIdOrName: 'Owner'
-        principalIds: [
-          managedIdentity.outputs.principalId
+        nicSuffix: '-nic-01'
+        ipConfigurations: [
+          {
+            name: 'ipconfig01'
+            subnetId: resourceGroupResources.outputs.virtualNetworkSubnetResourceId
+            pipConfiguration: {
+              publicIpNameSuffix: '-pip-01'
+            }
+          }
         ]
       }
     ]
-    location: location
-  }
-  dependsOn: [
-    resourceGroup
-  ]
-}
-
-module storageAccountDeploymentScript '../../../Microsoft.Resources/deploymentScripts/deploy.bicep' = {
-  scope: az.resourceGroup(resourceGroupName)
-  name: '${uniqueString(deployment().name, location)}-sa-ds'
-  params: {
-    name: 'sxx-ds-sa-${serviceShort}-01'
-    userAssignedIdentities: {
-      '${managedIdentity.outputs.resourceId}': {}
+    osDisk: {
+      createOption: 'fromImage'
+      deleteOption: 'Delete'
+      diskSizeGB: 128
+      managedDisk: {
+        storageAccountType: 'Premium_LRS'
+      }
     }
-    cleanupPreference: 'OnSuccess'
-    arguments: ' -StorageAccountName "${storageAccount.outputs.name}" -ResourceGroupName "${resourceGroup.outputs.name}" -ContainerName "scripts" -FileName "scriptExtensionMasterInstaller.ps1"'
-    scriptContent: '''
-      param(
-        [string] $StorageAccountName,
-        [string] $ResourceGroupName,
-        [string] $ContainerName,
-        [string] $FileName
-      )
-      Write-Verbose "Create file [$FileName]" -Verbose
-      $file = New-Item -Value "Write-Host 'I am content'" -Path $FileName -Force
-
-      Write-Verbose "Getting storage account [$StorageAccountName|$ResourceGroupName] context." -Verbose
-      $storageAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -StorageAccountName $StorageAccountName -ErrorAction 'Stop'
-
-      Write-Verbose 'Uploading file [$fileName]' -Verbose
-      Set-AzStorageBlobContent -File $file.FullName -Container $ContainerName -Context $storageAccount.Context -Force -ErrorAction 'Stop' | Out-Null
-    '''
-    location: location
-  }
-}
-
-module diagnosticDependencies '../../../.global/dependencyConstructs/diagnostic.dependencies.bicep' = {
-  scope: az.resourceGroup(resourceGroupName)
-  name: '${uniqueString(deployment().name, location)}-diagDep'
-  params: {
-    resourceGroupName: resourceGroupName
-    storageAccountName: storageAccount.outputs.name
-    logAnalyticsWorkspaceName: 'adp-sxx-law-${serviceShort}-01'
-    eventHubNamespaceEventHubName: 'adp-sxx-evh-${serviceShort}-01'
-    eventHubNamespaceName: 'adp-sxx-evhns-${serviceShort}-01'
-    location: location
-  }
-}
-
-module networkSecurityGroup '../../../Microsoft.Network/networkSecurityGroups/deploy.bicep' = {
-  scope: az.resourceGroup(resourceGroupName)
-  name: '${uniqueString(deployment().name, location)}-nsg'
-  params: {
-    name: 'adp-sxx-nsg-${serviceShort}-01'
-    location: location
-  }
-  dependsOn: [
-    resourceGroup
-  ]
-}
-
-module virtualNetwork '../../../Microsoft.Network/virtualNetworks/deploy.bicep' = {
-  scope: az.resourceGroup(resourceGroupName)
-  name: '${uniqueString(deployment().name, location)}-vnet'
-  params: {
-    name: 'adp-sxx-vnet-${serviceShort}-01'
-    addressPrefixes: [
-      '10.0.0.0/16'
-    ]
-    subnets: [
+    osType: 'Linux'
+    disablePasswordAuthentication: true
+    publicKeys: [
       {
-        name: 'sxx-subnet-x-01'
-        addressPrefix: '10.0.0.0/24'
-        networkSecurityGroupName: networkSecurityGroup.outputs.name
+        path: '/home/localAdminUser/.ssh/authorized_keys'
+        keyData: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDdOir5eO28EBwxU0Dyra7g9h0HUXDyMNFp2z8PhaTUQgHjrimkMxjYRwEOG/lxnYL7+TqZk+HcPTfbZOunHBw0Wx2CITzILt6531vmIYZGfq5YyYXbxZa5MON7L/PVivoRlPj5Z/t4RhqMhyfR7EPcZ516LJ8lXPTo8dE/bkOCS+kFBEYHvPEEKAyLs19sRcK37SeHjpX04zdg62nqtuRr00Tp7oeiTXA1xn5K5mxeAswotmd8CU0lWUcJuPBWQedo649b+L2cm52kTncOBI6YChAeyEc1PDF0Tn9FmpdOWKtI9efh+S3f8qkcVEtSTXoTeroBd31nzjAunMrZeM8Ut6dre+XeQQIjT7I8oEm+ZkIuIyq0x2fls8JXP2YJDWDqu8v1+yLGTQ3Z9XVt2lMti/7bIgYxS0JvwOr5n5L4IzKvhb4fm13LLDGFa3o7Nsfe3fPb882APE0bLFCmfyIeiPh7go70WqZHakpgIr6LCWTyePez9CsI/rfWDb6eAM8= generated-by-azure'
       }
     ]
-    location: location
   }
-  dependsOn: [
-    resourceGroup
-  ]
 }
 
-module recoveryServicesVault '../../../Microsoft.RecoveryServices/vaults/deploy.bicep' = {
-  scope: az.resourceGroup(resourceGroupName)
-  name: '${uniqueString(deployment().name, location)}-rsv'
+module testLinPar '../deploy.bicep' = {
+  scope: resourceGroup
+  name: '${uniqueString(deployment().name, location)}-testLinPar'
   params: {
-    name: 'adp-sxx-rsv-${serviceShort}-01'
-    backupConfig: {
-      enhancedSecurityState: 'Disabled'
-      softDeleteFeatureState: 'Disabled'
+    location: location
+    name: '${serviceShort}-vm-linux-par-01'
+    systemAssignedIdentity: true
+    userAssignedIdentities: {
+      '${resourceGroupResources.outputs.managedIdentityPrincipalId}': {}
     }
-    backupPolicies: [
+    osType: 'Linux'
+    encryptionAtHost: false
+    availabilityZone: 1
+    imageReference: {
+      publisher: 'Canonical'
+      offer: 'UbuntuServer'
+      sku: '18.04-LTS'
+      version: 'latest'
+    }
+    osDisk: {
+      createOption: 'fromImage'
+      deleteOption: 'Delete'
+      diskSizeGB: 128
+      managedDisk: {
+        storageAccountType: 'Premium_LRS'
+      }
+    }
+    adminUsername: 'localAdminUser'
+    disablePasswordAuthentication: true
+    publicKeys: [
       {
-        name: 'VMpolicy'
-        type: 'Microsoft.RecoveryServices/vaults/backupPolicies'
-        properties: {
-          backupManagementType: 'AzureIaasVM'
-          instantRPDetails: {}
-          schedulePolicy: {
-            schedulePolicyType: 'SimpleSchedulePolicy'
-            scheduleRunFrequency: 'Daily'
-            scheduleRunTimes: [
-              '2019-11-07T07:00:00Z'
-            ]
-            scheduleWeeklyFrequency: 0
-          }
-          retentionPolicy: {
-            retentionPolicyType: 'LongTermRetentionPolicy'
-            dailySchedule: {
-              retentionTimes: [
-                '2019-11-07T07:00:00Z'
+        path: '/home/localAdminUser/.ssh/authorized_keys'
+        keyData: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDdOir5eO28EBwxU0Dyra7g9h0HUXDyMNFp2z8PhaTUQgHjrimkMxjYRwEOG/lxnYL7+TqZk+HcPTfbZOunHBw0Wx2CITzILt6531vmIYZGfq5YyYXbxZa5MON7L/PVivoRlPj5Z/t4RhqMhyfR7EPcZ516LJ8lXPTo8dE/bkOCS+kFBEYHvPEEKAyLs19sRcK37SeHjpX04zdg62nqtuRr00Tp7oeiTXA1xn5K5mxeAswotmd8CU0lWUcJuPBWQedo649b+L2cm52kTncOBI6YChAeyEc1PDF0Tn9FmpdOWKtI9efh+S3f8qkcVEtSTXoTeroBd31nzjAunMrZeM8Ut6dre+XeQQIjT7I8oEm+ZkIuIyq0x2fls8JXP2YJDWDqu8v1+yLGTQ3Z9XVt2lMti/7bIgYxS0JvwOr5n5L4IzKvhb4fm13LLDGFa3o7Nsfe3fPb882APE0bLFCmfyIeiPh7go70WqZHakpgIr6LCWTyePez9CsI/rfWDb6eAM8= generated-by-azure'
+      }
+    ]
+
+    nicConfigurations: [
+      {
+        nicSuffix: '-nic-01'
+        deleteOption: 'Delete'
+        ipConfigurations: [
+          {
+            name: 'ipconfig01'
+            subnetId: resourceGroupResources.outputs.virtualNetworkSubnetResourceId
+            pipConfiguration: {
+              publicIpNameSuffix: '-pip-01'
+              roleAssignments: [
+                {
+                  roleDefinitionIdOrName: 'Reader'
+                  principalIds: [
+                    resourceGroupResources.outputs.managedIdentityPrincipalId
+                  ]
+                }
               ]
-              retentionDuration: {
-                count: 180
-                durationType: 'Days'
-              }
             }
+            roleAssignments: [
+              {
+                roleDefinitionIdOrName: 'Reader'
+                principalIds: [
+                  resourceGroupResources.outputs.managedIdentityPrincipalId
+                ]
+              }
+            ]
           }
-        }
+        ]
       }
     ]
-    location: location
-  }
-  dependsOn: [
-    resourceGroup
-  ]
-}
-
-module keyVault '../../../Microsoft.KeyVault/vaults/deploy.bicep' = {
-  scope: az.resourceGroup(resourceGroupName)
-  name: '${uniqueString(deployment().name, location)}-kv'
-  params: {
-    name: 'adp-sxx-kv-${serviceShort}-01'
-    enablePurgeProtection: false
-    accessPolicies: [
-      // Required so that the MSI can add secrets to the key vault
+    backupVaultName: resourceGroupResources.outputs.recoveryServicesVaultName
+    backupVaultResourceGroup: resourceGroup.name
+    backupPolicyName: resourceGroupResources.outputs.recoveryServicesVaultBackupPolicyName
+    roleAssignments: [
       {
-        objectId: managedIdentity.outputs.principalId
-        permissions: {
-          secrets: [
-            'All'
-          ]
-        }
+        roleDefinitionIdOrName: 'Reader'
+        principalIds: [
+          resourceGroupResources.outputs.managedIdentityPrincipalId
+        ]
       }
     ]
-    location: location
-  }
-  dependsOn: [
-    resourceGroup
-  ]
-}
-
-module keyVaultdeploymentScript '../../../Microsoft.Resources/deploymentScripts/deploy.bicep' = {
-  scope: az.resourceGroup(resourceGroupName)
-  name: '${uniqueString(deployment().name, location)}-kv-ds'
-  params: {
-    name: 'sxx-ds-kv-${serviceShort}-01'
-    userAssignedIdentities: {
-      '${managedIdentity.outputs.resourceId}': {}
+    diagnosticLogsRetentionInDays: 7
+    diagnosticStorageAccountId: diagnosticDependencies.outputs.storageAccountResourceId
+    diagnosticWorkspaceId: diagnosticDependencies.outputs.logAnalyticsWorkspaceResourceId
+    diagnosticEventHubAuthorizationRuleId: diagnosticDependencies.outputs.eventHubNamespaceEventHubAuthorizationRuleResourceId
+    diagnosticEventHubName: diagnosticDependencies.outputs.eventHubNamespaceEventHubName
+    extensionMonitoringAgentConfig: {
+      enabled: true
     }
-    cleanupPreference: 'OnSuccess'
-    arguments: ' -keyVaultName "${keyVault.outputs.name}"'
-    scriptContent: '''
-      param(
-        [string] $keyVaultName
-      )
-
-      $usernameString = (-join ((65..90) + (97..122) | Get-Random -Count 9 -SetSeed 1 | % {[char]$_ + "$_"})).substring(0,19) # max length
-      $passwordString = (New-Guid).Guid.SubString(0,19)
-
-      $userName = ConvertTo-SecureString -String $usernameString -AsPlainText -Force
-      $password = ConvertTo-SecureString -String $passwordString -AsPlainText -Force
-
-      # VirtualMachines and VMSS
-      Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'adminUsername' -SecretValue $username
-      Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'adminPassword' -SecretValue $password
-    '''
-    location: location
+    monitoringWorkspaceId: diagnosticDependencies.outputs.logAnalyticsWorkspaceResourceId
+    extensionDependencyAgentConfig: {
+      enabled: true
+    }
+    extensionNetworkWatcherAgentConfig: {
+      enabled: true
+    }
+    extensionDiskEncryptionConfig: {
+      enabled: true
+      settings: {
+        EncryptionOperation: 'EnableEncryption'
+        KeyVaultURL: 'https://${split(resourceGroupResources.outputs.keyVaultResourceId, '/')[-1]}.${environment().suffixes.keyvaultDns}/'
+        KeyVaultResourceId: resourceGroupResources.outputs.keyVaultResourceId
+        KeyEncryptionKeyURL: dependencyKeyVaultKey.properties.keyUriWithVersion
+        KekVaultResourceId: resourceGroupResources.outputs.keyVaultResourceId
+        KeyEncryptionAlgorithm: 'RSA-OAEP'
+        VolumeType: 'All'
+        ResizeOSDisk: 'false'
+      }
+    }
+    extensionDSCConfig: {
+      enabled: true
+    }
+    configurationProfileAssignments: [
+      '/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction'
+    ]
+    extensionCustomScriptConfig: {
+      enabled: true
+      fileData: [
+        {
+          uri: 'https://${split(diagnosticDependencies.outputs.storageAccountResourceId, '/')[-1]}.${environment().suffixes.storage}/scripts/scriptExtensionMasterInstaller.ps1'
+          storageAccountId: diagnosticDependencies.outputs.storageAccountResourceId
+        }
+      ]
+      protectedSettings: {
+        commandToExecute: 'sudo apt-get update'
+      }
+    }
   }
-  dependsOn: [
-    resourceGroup
-  ]
 }
-
-// ======= //
-// Outputs //
-// ======= //
-
-output resourceGroupResourceId string = resourceGroup.outputs.resourceId
-output managedIdentityResourceId string = managedIdentity.outputs.resourceId
-output storageAccountResourceId string = storageAccount.outputs.resourceId
-output storageAccountDeploymentScriptResourceId string = storageAccountDeploymentScript.outputs.resourceId
-output logAnalyticsWorkspaceResourceId string = diagnosticDependencies.outputs.logAnalyticsWorkspaceResourceId
-output eventHubNamespaceResourceId string = diagnosticDependencies.outputs.eventHubNamespaceResourceId
-output networkSecurityGroupResourceId string = networkSecurityGroup.outputs.resourceId
-output virtualNetworkResourceId string = virtualNetwork.outputs.resourceId
-output recoveryServicesVaultResourceId string = recoveryServicesVault.outputs.resourceId
-output keyVaultResourceId string = keyVault.outputs.resourceId
-output keyVaultdeploymentScriptResourceId string = keyVaultdeploymentScript.outputs.resourceId

@@ -21,28 +21,82 @@ param serviceShort string = 'aspar'
 // =========== //
 
 // Resource Group
-module resourceGroup '../../../Microsoft.Resources/resourceGroups/deploy.bicep' = {
-  name: '${uniqueString(deployment().name, location)}-rg'
-  params: {
-    name: resourceGroupName
-    location: location
-  }
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+  name: resourceGroupName
+  location: location
 }
 
-module diagnosticDependencies '../../../.global/dependencyConstructs/diagnostic.dependencies.bicep' = {
-  scope: az.resourceGroup(resourceGroupName)
+module diagnosticDependencies './.bicep/diagnostic.dependencies.bicep' = {
+  scope: resourceGroup
   name: '${uniqueString(deployment().name, location)}-diagDep'
   params: {
-    resourceGroupName: resourceGroupName
-    storageAccountName: 'adpsxxazsa${serviceShort}01'
-    logAnalyticsWorkspaceName: 'adp-sxx-law-${serviceShort}-01'
-    eventHubNamespaceEventHubName: 'adp-sxx-evh-${serviceShort}-01'
-    eventHubNamespaceName: 'adp-sxx-evhns-${serviceShort}-01'
+    serviceShort: serviceShort
     location: location
   }
 }
 
-output resourceGroupResourceId string = resourceGroup.outputs.resourceId
-output storageAccountResourceId string = diagnosticDependencies.outputs.storageAccountResourceId
-output logAnalyticsWorkspaceResourceId string = diagnosticDependencies.outputs.logAnalyticsWorkspaceResourceId
-output eventHubNamespaceResourceId string = diagnosticDependencies.outputs.eventHubNamespaceResourceId
+module resourceGroupResources '.bicep/resourceGroupResources.bicep' = {
+  scope: resourceGroup
+  name: '${uniqueString(deployment().name, location)}-rgresources'
+  params: {
+    location: location
+    serviceShort: serviceShort
+  }
+}
+
+////////////////////
+//   Test cases   //
+////////////////////
+
+// Test deployment MIN
+module testMin '../deploy.bicep' = {
+  scope: resourceGroup
+  name: '${uniqueString(deployment().name, location)}-testMin'
+  params: {
+    location: location
+    name: '${serviceShort}>azasweumin001'
+  }
+}
+
+// Test deployment MAX
+module testMax '../deploy.bicep' = {
+  scope: resourceGroup
+  name: '${uniqueString(deployment().name, location)}-testMax'
+  params: {
+    location: location
+    name: '${serviceShort}azasweumax001'
+    skuName: 'S0'
+    skuCapacity: 1
+    firewallSettings: {
+      firewallRules: [
+        {
+          firewallRuleName: 'AllowFromAll'
+          rangeStart: '0.0.0.0'
+          rangeEnd: '255.255.255.255'
+        }
+      ]
+      enablePowerBIService: true
+    }
+    diagnosticLogsRetentionInDays: 365
+    diagnosticStorageAccountId: diagnosticDependencies.outputs.storageAccountResourceId
+    diagnosticWorkspaceId: diagnosticDependencies.outputs.logAnalyticsWorkspaceResourceId
+    diagnosticEventHubAuthorizationRuleId: diagnosticDependencies.outputs.eventHubNamespaceEventHubAuthorizationRuleResourceId
+    diagnosticEventHubName: diagnosticDependencies.outputs.eventHubNamespaceEventHubName
+    lock: 'NotSpecified'
+    roleAssignments: [
+      {
+        roleDefinitionIdOrName: 'Reader'
+        principalIds: [
+          resourceGroupResources.outputs.managedIdentityPrincipalId
+        ]
+      }
+    ]
+    logsToEnable: [
+      'Engine'
+      'Service'
+    ]
+    metricsToEnable: [
+      'AllMetrics'
+    ]
+  }
+}
