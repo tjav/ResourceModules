@@ -1,10 +1,10 @@
-@description('Optional. The Name of Vnet Peering resource. If not provided, default value will be localVnetName-remoteVnetName')
+@description('Optional. The Name of VNET Peering resource. If not provided, default value will be localVnetName-remoteVnetName')
 param name string = '${localVnetName}-${last(split(remoteVirtualNetworkId, '/'))}'
 
 @description('Required. The Name of the Virtual Network to add the peering to.')
 param localVnetName string
 
-@description('Required. The Resource ID of the VNet that is this Local VNet is being peered to. Should be in the format of a Resource ID')
+@description('Required. The Resource ID of the VNET that is this Local VNET is being peered to. Should be in the format of a Resource ID')
 param remoteVirtualNetworkId string
 
 @description('Optional. Whether the forwarded traffic from the VMs in the local virtual network will be allowed/disallowed in remote virtual network. Default is true')

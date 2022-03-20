@@ -25,8 +25,8 @@ The following resources are required to be able to deploy this resource.
 | `doNotVerifyRemoteGateways` | bool | `True` |  | Optional. If we need to verify the provisioning state of the remote gateway. Default is true |
 | `enableDefaultTelemetry` | bool | `True` |  | Optional. Enable telemetry via the Customer Usage Attribution ID (GUID). |
 | `localVnetName` | string |  |  | Required. The Name of the Virtual Network to add the peering to. |
-| `name` | string | `[format('{0}-{1}', parameters('localVnetName'), last(split(parameters('remoteVirtualNetworkId'), '/')))]` |  | Optional. The Name of Vnet Peering resource. If not provided, default value will be localVnetName-remoteVnetName |
-| `remoteVirtualNetworkId` | string |  |  | Required. The Resource ID of the VNet that is this Local VNet is being peered to. Should be in the format of a Resource ID |
+| `name` | string | `[format('{0}-{1}', parameters('localVnetName'), last(split(parameters('remoteVirtualNetworkId'), '/')))]` |  | Optional. The Name of VNET Peering resource. If not provided, default value will be localVnetName-remoteVnetName |
+| `remoteVirtualNetworkId` | string |  |  | Required. The Resource ID of the VNET that is this Local VNET is being peered to. Should be in the format of a Resource ID |
 | `useRemoteGateways` | bool | `False` |  | Optional. If remote gateways can be used on this virtual network. If the flag is set to true, and allowGatewayTransit on remote peering is also true, virtual network will use gateways of remote virtual network for transit. Only one peering can have this flag set to true. This flag cannot be set if virtual network already has a gateway. Default is false |
 
 ## Outputs
