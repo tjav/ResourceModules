@@ -1,6 +1,6 @@
 {
   "$schema": "https://aka.ms/bicep-registry-module-metadata-file-schema#",
-  "name": "",
-  "description": "",
-  "owner": ""
+  "name": "Resource Groups",
+  "description": "This template deploys Microsoft.Resources Resource Groups and optionally available children or extensions",
+  "owner": "CARML"
 }
