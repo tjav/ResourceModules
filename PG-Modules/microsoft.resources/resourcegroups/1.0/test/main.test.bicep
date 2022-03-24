@@ -47,6 +47,7 @@ module rg '../main.bicep' = {
         principalIds: [
           resourceGroupResources.outputs.managedIdentityPrincipalId
         ]
+        principalType: 'ServicePrincipal'
       }
     ]
   }

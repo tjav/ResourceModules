@@ -65,6 +65,7 @@ module genavs '../main.bicep' = {
         principalIds: [
           resourceGroupResources.outputs.managedIdentityPrincipalId
         ]
+        principalType: 'ServicePrincipal'
       }
     ]
     location: location

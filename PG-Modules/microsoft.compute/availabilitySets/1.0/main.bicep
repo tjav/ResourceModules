@@ -61,6 +61,7 @@ module availabilitySet_rbac '.bicep/nested_rbac.bicep' = [for (roleAssignment, i
     description: contains(roleAssignment, 'description') ? roleAssignment.description : ''
     principalIds: roleAssignment.principalIds
     roleDefinitionIdOrName: roleAssignment.roleDefinitionIdOrName
+    principalType: contains(roleAssignment, 'principalType') ? roleAssignment.principalType : ''
     resourceId: availabilitySet.id
   }
 }]
