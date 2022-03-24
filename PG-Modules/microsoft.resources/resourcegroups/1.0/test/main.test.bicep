@@ -8,7 +8,7 @@ targetScope = 'subscription'
 @description('Optional. The location to deploy resources to')
 param location string = deployment().location
 
-@description('Optional. A short identifier for the kind of deployment. E.g. "aspar". Should be kept short to not run into resource-name length-constraints')
+@description('Optional. A short identifier for the kind of deployment. Should be kept short to not run into resource-name length-constraints')
 param serviceShort string = 'rg'
 
 // ========== //
@@ -35,7 +35,7 @@ module resourceGroupResources '.bicep/resourceGroupResources.bicep' = {
 // Test Execution //
 // ============== //
 
-// TEST 1 - MIN
+// TEST
 module rg '../main.bicep' = {
   name: '${uniqueString(deployment().name, location)}-rg'
   params: {
