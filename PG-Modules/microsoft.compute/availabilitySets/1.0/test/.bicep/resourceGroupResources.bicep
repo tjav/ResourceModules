@@ -13,12 +13,12 @@ param location string = resourceGroup().location
 // =========== //
 
 resource proximityPlacementGroup 'Microsoft.Compute/proximityPlacementGroups@2021-11-01' = {
-  name: '${serviceShort}-az-ppg-x-01'
+  name: 'adp-${serviceShort}-az-ppg-x-01'
   location: location
 }
 
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
-  name: '${serviceShort}-az-msi-x-01'
+  name: 'adp-${serviceShort}-az-msi-x-01'
   location: location
 }
 

@@ -57,7 +57,7 @@ module minvnet '../main.bicep' = {
   }
 }
 
-// // TEST 2 - GENERAL
+// TEST 2 - GENERAL
 module genvnet '../main.bicep' = {
   scope: resourceGroup
   name: '${uniqueString(deployment().name, location)}-genvnet'
@@ -118,5 +118,39 @@ module genvnet '../main.bicep' = {
     diagnosticWorkspaceId: diagnosticDependencies.outputs.logAnalyticsWorkspaceResourceId
     diagnosticEventHubAuthorizationRuleId: diagnosticDependencies.outputs.eventHubNamespaceEventHubAuthorizationRuleResourceId
     diagnosticEventHubName: diagnosticDependencies.outputs.eventHubNamespaceEventHubName
+  }
+}
+
+// TEST 3 - PEERING
+module peervnet '../main.bicep' = {
+  scope: resourceGroup
+  name: '${uniqueString(deployment().name, location)}-peervnet'
+  params: {
+    name: '${serviceShort}-az-vnet-peer-01'
+    location: location
+    addressPrefixes: [
+      '10.0.0.0/24'
+    ]
+
+    subnets: [
+      {
+        'name': 'GatewaySubnet'
+        'addressPrefix': '10.0.0.0/26'
+      }
+    ]
+
+    virtualNetworkPeerings: [
+      {
+        remoteVirtualNetworkId: resourceGroupResources.outputs.peeringVirtualNetworkResourceId
+        allowForwardedTraffic: true
+        allowGatewayTransit: false
+        allowVirtualNetworkAccess: true
+        useRemoteGateways: false
+        remotePeeringEnable: true
+        remotePeeringName: 'customName'
+        remotePeeringAllowVirtualNetworkAccess: true
+        remotePeeringAllowForwardedTraffic: true
+      }
+    ]
   }
 }
