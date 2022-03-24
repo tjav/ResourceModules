@@ -17,7 +17,7 @@ param serviceShort string = 'rg'
 
 // Resource Group
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: 'adp-${serviceShort}-az-rg-x-01'
+  name: '${serviceShort}-microsoft-resources-resource-rg'
   location: location
 }
 

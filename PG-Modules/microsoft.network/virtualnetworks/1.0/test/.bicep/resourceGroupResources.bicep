@@ -19,14 +19,17 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-
 
 resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
   name: 'dep-${serviceShort}-az-nsg-x-01'
+  location: location
 }
 
 resource routeTable 'Microsoft.Network/routeTables@2021-05-01' = {
   name: 'dep-${serviceShort}-az-rt-x-01'
+  location: location
 }
 
 resource peeringVNET 'Microsoft.Network/virtualNetworks@2021-05-01' = {
   name: 'dep-${serviceShort}-az-vnet-x-01'
+  location: location
   properties: {
     addressSpace: {
       addressPrefixes: [

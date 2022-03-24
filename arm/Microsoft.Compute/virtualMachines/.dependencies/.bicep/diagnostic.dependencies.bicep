@@ -31,6 +31,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-12
 
 resource eventHubNamespace 'Microsoft.EventHub/namespaces@2021-11-01' = {
   name: 'adp-sxx-evhns-${serviceShort}-01'
+  location: location
 
   resource eventHub 'eventhubs@2021-11-01' = {
     name: 'adp-sxx-evh-${serviceShort}-01'
