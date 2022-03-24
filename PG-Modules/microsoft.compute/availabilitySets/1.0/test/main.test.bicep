@@ -9,7 +9,7 @@ targetScope = 'subscription'
 param location string = deployment().location
 
 @description('Optional. A short identifier for the kind of deployment. E.g. "aspar". Should be kept short to not run into resource-name length-constraints')
-param serviceShort string = 'aspar'
+param serviceShort string = 'avs'
 
 // ========== //
 // Test Setup //
@@ -36,9 +36,9 @@ module resourceGroupResources '.bicep/resourceGroupResources.bicep' = {
 // ============== //
 
 // TEST 1 - MIN
-module minas '../main.bicep' = {
+module minavs '../main.bicep' = {
   scope: resourceGroup
-  name: '${uniqueString(deployment().name, location)}-minas'
+  name: '${uniqueString(deployment().name, location)}-minavs'
   params: {
     name: '${serviceShort}-az-avs-min-01'
     location: location
@@ -46,9 +46,9 @@ module minas '../main.bicep' = {
 }
 
 // TEST 2 - GENERAL
-module genas '../main.bicep' = {
+module genavs '../main.bicep' = {
   scope: resourceGroup
-  name: '${uniqueString(deployment().name, location)}-genas'
+  name: '${uniqueString(deployment().name, location)}-genavs'
   params: {
     name: '${serviceShort}-az-avs-gen-01'
     proximityPlacementGroupId: resourceGroupResources.outputs.proximityPlacementGroupResourceId
