@@ -1,12 +1,10 @@
-targetScope = 'subscription'
-
 // ========== //
 // Parameters //
 // ========== //
 
 // Shared
 @description('Optional. The location to deploy resources to')
-param location string = deployment().location
+param location string = resourceGroup().location
 
 @description('Optional. A short identifier for the kind of deployment. Should be kept short to not run into resource-name length-constraints')
 param serviceShort string = 'vnet'
@@ -15,28 +13,82 @@ param serviceShort string = 'vnet'
 // Test Setup //
 // ========== //
 
-// Resource Group
-resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: '${serviceShort}-microsoft-network-virtualnetwork-rg'
+// General resources
+// =================
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+  name: 'dep-${serviceShort}-az-msi-x-01'
   location: location
 }
 
-// Resource Group resources
-module resourceGroupResources '.bicep/resourceGroupResources.bicep' = {
-  scope: resourceGroup
-  name: '${uniqueString(deployment().name, location)}-rgresources'
-  params: {
-    location: location
-    serviceShort: serviceShort
+resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+  name: 'dep-${serviceShort}-az-nsg-x-01'
+  location: location
+}
+
+resource routeTable 'Microsoft.Network/routeTables@2021-05-01' = {
+  name: 'dep-${serviceShort}-az-rt-x-01'
+  location: location
+}
+
+resource peeringVNET 'Microsoft.Network/virtualNetworks@2021-05-01' = {
+  name: 'dep-${serviceShort}-az-vnet-x-01'
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        '10.2.0.0/16'
+      ]
+    }
+    subnets: [
+      {
+        name: '${serviceShort}-az-subnet-x-001'
+        properties: {
+          addressPrefix: '10.2.0.0/24'
+          networkSecurityGroup: {
+            id: networkSecurityGroup.id
+          }
+        }
+      }
+    ]
   }
 }
 
-module diagnosticDependencies './.bicep/diagnostic.dependencies.bicep' = {
-  scope: resourceGroup
-  name: '${uniqueString(deployment().name, location)}-diagDep'
-  params: {
-    serviceShort: serviceShort
-    location: location
+// Diagnostics
+// ===========
+resource storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' = {
+  name: 'adpsxxazsa${serviceShort}01'
+  kind: 'StorageV2'
+  sku: {
+    name: 'Standard_LRS'
+  }
+  location: location
+  properties: {
+    allowBlobPublicAccess: false
+  }
+}
+
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
+  name: 'adp-sxx-law-${serviceShort}-01'
+  location: location
+}
+
+resource eventHubNamespace 'Microsoft.EventHub/namespaces@2021-11-01' = {
+  name: 'adp-sxx-evhns-${serviceShort}-01'
+  location: location
+
+  resource eventHub 'eventhubs@2021-11-01' = {
+    name: 'adp-sxx-evh-${serviceShort}-01'
+  }
+
+  resource authorizationRule 'authorizationRules@2021-06-01-preview' = {
+    name: 'RootManageSharedAccessKey'
+    properties: {
+      rights: [
+        'Listen'
+        'Manage'
+        'Send'
+      ]
+    }
   }
 }
 
@@ -46,7 +98,6 @@ module diagnosticDependencies './.bicep/diagnostic.dependencies.bicep' = {
 
 // TEST 1 - MIN
 module minvnet '../main.bicep' = {
-  scope: resourceGroup
   name: '${uniqueString(deployment().name, location)}-minvnet'
   params: {
     name: '${serviceShort}-az-vnet-min-01'
@@ -59,7 +110,6 @@ module minvnet '../main.bicep' = {
 
 // TEST 2 - GENERAL
 module genvnet '../main.bicep' = {
-  scope: resourceGroup
   name: '${uniqueString(deployment().name, location)}-genvnet'
   params: {
     name: '${serviceShort}-az-vnet-gen-01'
@@ -75,7 +125,7 @@ module genvnet '../main.bicep' = {
       {
         name: '${serviceShort}-az-subnet-x-001'
         addressPrefix: '10.0.0.0/24'
-        networkSecurityGroupId: resourceGroupResources.outputs.networkSecurityGroupResourceId
+        networkSecurityGroupId: networkSecurityGroup.id
         serviceEndpoints: [
           {
             service: 'Microsoft.Storage'
@@ -84,7 +134,7 @@ module genvnet '../main.bicep' = {
             service: 'Microsoft.Sql'
           }
         ]
-        routeTableId: resourceGroupResources.outputs.routeTableResourceId
+        routeTableId: routeTable.id
       }
       {
         name: '${serviceShort}-az-subnet-x-002'
@@ -109,22 +159,21 @@ module genvnet '../main.bicep' = {
       {
         roleDefinitionIdOrName: 'Reader'
         principalIds: [
-          resourceGroupResources.outputs.managedIdentityPrincipalId
+          managedIdentity.properties.principalId
         ]
         principalType: 'ServicePrincipal'
       }
     ]
     diagnosticLogsRetentionInDays: 7
-    diagnosticStorageAccountId: diagnosticDependencies.outputs.storageAccountResourceId
-    diagnosticWorkspaceId: diagnosticDependencies.outputs.logAnalyticsWorkspaceResourceId
-    diagnosticEventHubAuthorizationRuleId: diagnosticDependencies.outputs.eventHubNamespaceEventHubAuthorizationRuleResourceId
-    diagnosticEventHubName: diagnosticDependencies.outputs.eventHubNamespaceEventHubName
+    diagnosticStorageAccountId: storageAccount.id
+    diagnosticWorkspaceId: logAnalyticsWorkspace.id
+    diagnosticEventHubAuthorizationRuleId: eventHubNamespace::authorizationRule.id
+    diagnosticEventHubName: eventHubNamespace::eventHub.name
   }
 }
 
 // TEST 3 - PEERING
 module peervnet '../main.bicep' = {
-  scope: resourceGroup
   name: '${uniqueString(deployment().name, location)}-peervnet'
   params: {
     name: '${serviceShort}-az-vnet-peer-01'
@@ -142,7 +191,7 @@ module peervnet '../main.bicep' = {
 
     virtualNetworkPeerings: [
       {
-        remoteVirtualNetworkId: resourceGroupResources.outputs.peeringVirtualNetworkResourceId
+        remoteVirtualNetworkId: peeringVNET.id
         allowForwardedTraffic: true
         allowGatewayTransit: false
         allowVirtualNetworkAccess: true

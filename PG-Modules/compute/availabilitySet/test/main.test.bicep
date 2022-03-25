@@ -1,12 +1,10 @@
-targetScope = 'subscription'
-
 // ========== //
 // Parameters //
 // ========== //
 
 // Shared
 @description('Optional. The location to deploy resources to')
-param location string = deployment().location
+param location string = resourceGroup().location
 
 @description('Optional. A short identifier for the kind of deployment. Should be kept short to not run into resource-name length-constraints')
 param serviceShort string = 'avs'
@@ -15,20 +13,16 @@ param serviceShort string = 'avs'
 // Test Setup //
 // ========== //
 
-// Resource Group
-resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: '${serviceShort}-microsoft-compute-availabilityset-rg'
+// General resources
+// =================
+resource proximityPlacementGroup 'Microsoft.Compute/proximityPlacementGroups@2021-11-01' = {
+  name: 'adp-${serviceShort}-az-ppg-x-01'
   location: location
 }
 
-// Resource Group resources
-module resourceGroupResources '.bicep/resourceGroupResources.bicep' = {
-  scope: resourceGroup
-  name: '${uniqueString(deployment().name, location)}-rgresources'
-  params: {
-    location: location
-    serviceShort: serviceShort
-  }
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+  name: 'adp-${serviceShort}-az-msi-x-01'
+  location: location
 }
 
 // ============== //
@@ -37,7 +31,6 @@ module resourceGroupResources '.bicep/resourceGroupResources.bicep' = {
 
 // TEST 1 - MIN
 module minavs '../main.bicep' = {
-  scope: resourceGroup
   name: '${uniqueString(deployment().name, location)}-minavs'
   params: {
     name: '${serviceShort}-az-avs-min-01'
@@ -47,11 +40,10 @@ module minavs '../main.bicep' = {
 
 // TEST 2 - GENERAL
 module genavs '../main.bicep' = {
-  scope: resourceGroup
   name: '${uniqueString(deployment().name, location)}-genavs'
   params: {
     name: '${serviceShort}-az-avs-gen-01'
-    proximityPlacementGroupId: resourceGroupResources.outputs.proximityPlacementGroupResourceId
+    proximityPlacementGroupId: proximityPlacementGroup.id
     availabilitySetSku: 'aligned'
     availabilitySetUpdateDomain: 2
     availabilitySetFaultDomain: 2
@@ -63,7 +55,7 @@ module genavs '../main.bicep' = {
       {
         roleDefinitionIdOrName: 'Reader'
         principalIds: [
-          resourceGroupResources.outputs.managedIdentityPrincipalId
+          managedIdentity.properties.principalId
         ]
         principalType: 'ServicePrincipal'
       }
