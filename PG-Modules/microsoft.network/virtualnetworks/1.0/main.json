@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1008.15138",
-      "templateHash": "5013145901349993624"
+      "templateHash": "10147482368024752074"
     }
   },
   "parameters": {
@@ -823,6 +823,9 @@
           "roleDefinitionIdOrName": {
             "value": "[parameters('roleAssignments')[copyIndex()].roleDefinitionIdOrName]"
           },
+          "principalType": {
+            "value": "[if(contains(parameters('roleAssignments')[copyIndex()], 'principalType'), parameters('roleAssignments')[copyIndex()].principalType, '')]"
+          },
           "resourceId": {
             "value": "[resourceId('Microsoft.Network/virtualNetworks', parameters('name'))]"
           }
@@ -834,7 +837,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1008.15138",
-              "templateHash": "1262851050443795662"
+              "templateHash": "15107847006887852467"
             }
           },
           "parameters": {
@@ -844,6 +847,10 @@
             },
             "principalIds": {
               "type": "array"
+            },
+            "principalType": {
+              "type": "string",
+              "defaultValue": ""
             },
             "roleDefinitionIdOrName": {
               "type": "string"
@@ -900,7 +907,8 @@
               "properties": {
                 "description": "[parameters('description')]",
                 "roleDefinitionId": "[if(contains(variables('builtInRoleNames'), parameters('roleDefinitionIdOrName')), variables('builtInRoleNames')[parameters('roleDefinitionIdOrName')], parameters('roleDefinitionIdOrName'))]",
-                "principalId": "[parameters('principalIds')[copyIndex()]]"
+                "principalId": "[parameters('principalIds')[copyIndex()]]",
+                "principalType": "[if(not(empty(parameters('principalType'))), parameters('principalType'), null())]"
               }
             }
           ]

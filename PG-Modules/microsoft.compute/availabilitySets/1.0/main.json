@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1008.15138",
-      "templateHash": "15170380058886366204"
+      "templateHash": "15333760313736805540"
     }
   },
   "parameters": {
@@ -131,6 +131,9 @@
           "roleDefinitionIdOrName": {
             "value": "[parameters('roleAssignments')[copyIndex()].roleDefinitionIdOrName]"
           },
+          "principalType": {
+            "value": "[if(contains(parameters('roleAssignments')[copyIndex()], 'principalType'), parameters('roleAssignments')[copyIndex()].principalType, '')]"
+          },
           "resourceId": {
             "value": "[resourceId('Microsoft.Compute/availabilitySets', parameters('name'))]"
           }
@@ -142,11 +145,15 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1008.15138",
-              "templateHash": "13512191155947793052"
+              "templateHash": "16355735172693578174"
             }
           },
           "parameters": {
             "description": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "principalType": {
               "type": "string",
               "defaultValue": ""
             },
@@ -199,7 +206,8 @@
               "properties": {
                 "description": "[parameters('description')]",
                 "roleDefinitionId": "[if(contains(variables('builtInRoleNames'), parameters('roleDefinitionIdOrName')), variables('builtInRoleNames')[parameters('roleDefinitionIdOrName')], parameters('roleDefinitionIdOrName'))]",
-                "principalId": "[parameters('principalIds')[copyIndex()]]"
+                "principalId": "[parameters('principalIds')[copyIndex()]]",
+                "principalType": "[if(not(empty(parameters('principalType'))), parameters('principalType'), null())]"
               }
             }
           ]
