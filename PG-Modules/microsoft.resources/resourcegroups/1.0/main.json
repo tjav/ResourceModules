@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1008.15138",
-      "templateHash": "7151934152935433603"
+      "templateHash": "4117054014734971451"
     }
   },
   "parameters": {
@@ -175,6 +175,9 @@
           "roleDefinitionIdOrName": {
             "value": "[parameters('roleAssignments')[copyIndex()].roleDefinitionIdOrName]"
           },
+          "principalType": {
+            "value": "[if(contains(parameters('roleAssignments')[copyIndex()], 'principalType'), parameters('roleAssignments')[copyIndex()].principalType, '')]"
+          },
           "resourceGroupName": {
             "value": "[parameters('name')]"
           }
@@ -186,7 +189,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.1008.15138",
-              "templateHash": "6463043477908532479"
+              "templateHash": "11411440974260357349"
             }
           },
           "parameters": {
@@ -196,6 +199,10 @@
             },
             "principalIds": {
               "type": "array"
+            },
+            "principalType": {
+              "type": "string",
+              "defaultValue": ""
             },
             "roleDefinitionIdOrName": {
               "type": "string"
@@ -394,7 +401,8 @@
               "properties": {
                 "description": "[parameters('description')]",
                 "roleDefinitionId": "[if(contains(variables('builtInRoleNames'), parameters('roleDefinitionIdOrName')), variables('builtInRoleNames')[parameters('roleDefinitionIdOrName')], parameters('roleDefinitionIdOrName'))]",
-                "principalId": "[parameters('principalIds')[copyIndex()]]"
+                "principalId": "[parameters('principalIds')[copyIndex()]]",
+                "principalType": "[if(not(empty(parameters('principalType'))), parameters('principalType'), null())]"
               }
             }
           ]
