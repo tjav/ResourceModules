@@ -113,7 +113,8 @@
                     "test2@contoso.com"
                 ],
                 "vulnerabilityAssessmentsStorageAccountId": "/subscriptions/<<subscriptionId>>/resourceGroups/validation-rg/providers/Microsoft.Storage/storageAccounts/adp<<namePrefix>>azsax001",
-                "useAccessKeyForAccess": true
+                "useAccessKeyForAccess": false,
+                "useSystemAssignedIdentityForAccess": true
             }
         },
         "databases": {
