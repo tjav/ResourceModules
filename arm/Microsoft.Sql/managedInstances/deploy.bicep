@@ -317,6 +317,23 @@ module managedInstance_securityAlertPolicy 'securityAlertPolicies/deploy.bicep' 
   }
 }
 
+// Optional role assigment for vulnerability assessment
+resource vulnerabilityAssessmentStorageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' existing = if (vulnerabilityAssessmentsObj.storageAccountId) {
+  name: last(split(vulnerabilityAssessmentsObj.storageAccountId, '/'))
+  scope: resourceGroup(split(vulnerabilityAssessmentsObj.storageAccountId, '/')[2], split(vulnerabilityAssessmentsObj.storageAccountId, '/')[4])
+}
+
+resource vulnerabilityRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = if (contains(vulnerabilityAssessmentsObj, 'useSystemAssignedIdentityForAccess') && vulnerabilityAssessmentsObj.useSystemAssignedIdentityForAccess) {
+  name: guid(managedInstance.name, 'Storage Blob Data Contributor')
+  properties: {
+    description: 'SQL Managed Instance ${managedInstance.name} Vulnerability Assessment'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe') // 'Storage Blob Data Contributor'
+    principalId: managedInstance.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+  scope: managedInstance
+}
+
 module managedInstance_vulnerabilityAssessment 'vulnerabilityAssessments/deploy.bicep' = if (!empty(vulnerabilityAssessmentsObj)) {
   name: '${uniqueString(deployment().name, location)}-SqlMi-VulnAssessm'
   params: {
@@ -330,6 +347,7 @@ module managedInstance_vulnerabilityAssessment 'vulnerabilityAssessments/deploy.
   }
   dependsOn: [
     managedInstance_securityAlertPolicy
+    vulnerabilityRoleAssignment
   ]
 }
 
