@@ -325,7 +325,8 @@ module managedInstance_vulnerabilityAssessment 'vulnerabilityAssessments/deploy.
     recurringScansEmails: contains(vulnerabilityAssessmentsObj, 'recurringScansEmails') ? vulnerabilityAssessmentsObj.recurringScansEmails : []
     recurringScansEmailSubscriptionAdmins: contains(vulnerabilityAssessmentsObj, 'recurringScansEmailSubscriptionAdmins') ? vulnerabilityAssessmentsObj.recurringScansEmailSubscriptionAdmins : false
     recurringScansIsEnabled: contains(vulnerabilityAssessmentsObj, 'recurringScansIsEnabled') ? vulnerabilityAssessmentsObj.recurringScansIsEnabled : false
-    vulnerabilityAssessmentsStorageAccountId: contains(vulnerabilityAssessmentsObj, 'vulnerabilityAssessmentsStorageAccountId') ? vulnerabilityAssessmentsObj.vulnerabilityAssessmentsStorageAccountId : ''
+    storageAccountId: contains(vulnerabilityAssessmentsObj, 'storageAccountId') ? vulnerabilityAssessmentsObj.storageAccountId : ''
+    useAccessKeyForAccess: contains(vulnerabilityAssessmentsObj, 'useAccessKeyForAccess') ? vulnerabilityAssessmentsObj.useAccessKeyForAccess : true
   }
   dependsOn: [
     managedInstance_securityAlertPolicy
