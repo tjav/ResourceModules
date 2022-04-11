@@ -25,7 +25,7 @@ on:
       - '!utilities/pipelines/dependencies/**'
 
 env:
-  rgPattern: 'test-ms.compute-galleries-{0}-rg'
+  variablesPath: 'global.variables.yml'
   modulePath: 'arm/Microsoft.Compute/galleries'
   workflowPath: '.github/workflows/ms.compute.galleries.yml'
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
@@ -89,16 +89,16 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set environment variables
-        uses: deep-mm/set-variables@v1.0
+        uses: ./.github/actions/templates/setEnvironmentVariables
         with:
-          variableFileName: 'global.variables'
+          variablesPath: ${{ env.variablesPath }}
       - name: 'Using parameter file [${{ matrix.parameterFilePaths }}]'
         uses: ./.github/actions/templates/validateModuleDeployment
         with:
           templateFilePath: '${{ env.modulePath }}/deploy.bicep'
           parameterFilePath: '${{ env.modulePath }}/.parameters/${{ matrix.parameterFilePaths }}'
-          location: '${{ env.defaultLocation }}'
-          resourceGroupName: '${{ format(env.rgPattern, matrix.parameterFilePaths) }}'
+          location: '${{ env.location }}'
+          resourceGroupName: '${{ env.resourceGroupName }}'
           subscriptionId: '${{ secrets.ARM_SUBSCRIPTION_ID }}'
           managementGroupId: '${{ secrets.ARM_MGMTGROUP_ID }}'
           removeDeployment: '${{ needs.job_set_workflow_param.outputs.removeDeployment }}'
@@ -119,9 +119,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set environment variables
-        uses: deep-mm/set-variables@v1.0
+        uses: ./.github/actions/templates/setEnvironmentVariables
         with:
-          variableFileName: 'global.variables'
+          variablesPath: ${{ env.variablesPath }}
       - name: 'Publish module'
         uses: ./.github/actions/templates/publishModule
         with:

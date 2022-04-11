@@ -102,6 +102,8 @@ To update the `namePrefix`, perform the following steps:
     ```
     > **Note:** The value should be a 3-5 character long string like `cntso`. Longer strings are not recommended as they may conflict with Azure resource name length restrictions.
 
+    > **Note:** We highly encourage you to use the script `'utilities/tools/Test-NamePrefixAvailability.ps1'` to test if a given name prefix could conflict with any existing resource.
+
  For further information on the token replacement logic, please refer to the corresponding [Token replacement](./The%20CI%20environment%20-%20Token%20replacement) section.
 
 ## 3.2 Setup CI-environment-specific configuration
@@ -161,14 +163,14 @@ To use the environment's pipelines you should use the information you gathered d
 
 ### 3.2.2 Setup variables file
 
-The primary pipeline variable file `.github/variables/global.variables.json` hosts the fundamental pipeline configuration. In the file you will find and can configure settings such as:
+The primary pipeline variable file `global.variables.yml` hosts the fundamental pipeline configuration. In the file you will find and can configure settings such as:
 
 <details>
 <summary>General</summary>
 
 | Variable Name | Example Value | Description |
 | - | - | - |
-| `defaultLocation` | `"WestEurope"` | The default location to deploy resources to and store deployment metadata at. If no location is specified in the deploying parameter file, this location is used |
+| `location` | `"WestEurope"` | The default location to deploy resources to and store deployment metadata at. If no location is specified in the deploying parameter file, this location is used |
 | `resourceGroupName` | `"validation-rg"` | The resource group to deploy all resources for validation to |
 
 </details>
@@ -192,7 +194,7 @@ The primary pipeline variable file `.github/variables/global.variables.json` hos
 | - | - | - |
 | `bicepRegistryName` | `"adpsxxazacrx001"` | The container registry to publish Bicep templates to. <p> **NOTE:** Must be globally unique |
 | `bicepRegistryRGName` | `"artifacts-rg"` | The resource group of the container registry to publish Bicep templates into. It is used to create a new container registry if not yet existing |
-| `bicepRegistryRGName` | `"artifacts-rg"` | The location of the resource group of the container registry to publish Bicep templates into. Is used to create a new resource group if not yet existing |
+| `bicepRegistryRgLocation` | `'West Europe'` | The location of the resource group of the container registry to publish Bicep templates into. Is used to create a new resource group if not yet existing |
 | `bicepRegistryDoPublish` | `"true"` | A central switch to enable/disable publishing to the private Bicep registry |
 
 </details>
@@ -257,15 +259,15 @@ variables:
 
 ### 3.2.3 Setup variables file
 
-The primary pipeline variable file `.azuredevops/pipelineVariables/global.variables.yml` hosts the fundamental pipeline configuration. In the file you will find and can configure information such as:
+The primary pipeline variable file `global.variables.yml` hosts the fundamental pipeline configuration. In the file you will find and can configure information such as:
 
 <details>
 <summary>General</summary>
 
 | Variable Name | Example Value | Description |
 | - | - | - |
-| `defaultLocation` | `'WestEurope'` | The default location to deploy resources to. If no location is specified in the deploying parameter file, this location is used |
-| `defaultResourceGroupName` | `'validation-rg'` | The resource group to deploy all resources for validation into |
+| `location` | `'WestEurope'` | The default location to deploy resources to. If no location is specified in the deploying parameter file, this location is used |
+| `resourceGroupName` | `'validation-rg'` | The resource group to deploy all resources for validation into |
 | `serviceConnection` | `'Contoso-Connection'` | The service connection that points to the subscription to test in and publish to |
 
 </details>
@@ -289,7 +291,7 @@ The primary pipeline variable file `.azuredevops/pipelineVariables/global.variab
 | - | - | - |
 | `bicepRegistryName` | `'adpsxxazacrx001'` | The container registry to publish Bicep templates to. <p> **NOTE:** Must be globally unique |
 | `bicepRegistryRGName` | `'artifacts-rg'` | The resource group of the container registry to publish Bicep templates to. Is used to create a new container registry if not yet existing |
-| `bicepRegistryRGName` | `'artifacts-rg'` | The location of the resource group of the container registry to publish Bicep templates to. Is used to create a new resource group if not yet existing |
+| `bicepRegistryRgLocation` | `'West Europe'` | The location of the resource group of the container registry to publish Bicep templates to. Is used to create a new resource group if not yet existing |
 | `bicepRegistryDoPublish` | `'true'` | A central switch to enable/disable publishing to the private Bicep registry |
 
 </details>
