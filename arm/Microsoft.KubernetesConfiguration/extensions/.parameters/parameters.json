@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "name": {
-            "value": "flux"
+            "value": "<<namePrefix>>-az-aks-ext-x-001"
         },
         "extensionType": {
             "value": "microsoft.flux"
