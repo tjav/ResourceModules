@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "name": {
-            "value": "flux2"
+            "value": "<<namePrefix>>-az-aks-fluxcnf-x-001"
         },
         "scope": {
             "value": "cluster"
