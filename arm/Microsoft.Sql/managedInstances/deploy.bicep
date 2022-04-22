@@ -304,6 +304,7 @@ module managedInstance_databases 'databases/deploy.bicep' = [for (database, inde
     diagnosticWorkspaceId: contains(database, 'diagnosticWorkspaceId') ? database.diagnosticWorkspaceId : ''
     backupShortTermRetentionPoliciesObj: contains(database, 'backupShortTermRetentionPolicies') ? database.backupShortTermRetentionPolicies : {}
     backupLongTermRetentionPoliciesObj: contains(database, 'backupLongTermRetentionPolicies') ? database.backupLongTermRetentionPolicies : {}
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
 }]
 
@@ -314,6 +315,7 @@ module managedInstance_securityAlertPolicy 'securityAlertPolicies/deploy.bicep' 
     name: securityAlertPoliciesObj.name
     emailAccountAdmins: contains(securityAlertPoliciesObj, 'emailAccountAdmins') ? securityAlertPoliciesObj.emailAccountAdmins : false
     state: contains(securityAlertPoliciesObj, 'state') ? securityAlertPoliciesObj.state : 'Disabled'
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
 }
 
@@ -344,6 +346,7 @@ module managedInstance_vulnerabilityAssessment 'vulnerabilityAssessments/deploy.
     recurringScansIsEnabled: contains(vulnerabilityAssessmentsObj, 'recurringScansIsEnabled') ? vulnerabilityAssessmentsObj.recurringScansIsEnabled : false
     storageAccountId: contains(vulnerabilityAssessmentsObj, 'storageAccountId') ? vulnerabilityAssessmentsObj.storageAccountId : ''
     useAccessKeyForAccess: contains(vulnerabilityAssessmentsObj, 'useAccessKeyForAccess') ? vulnerabilityAssessmentsObj.useAccessKeyForAccess : true
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
   dependsOn: [
     managedInstance_securityAlertPolicy
@@ -358,6 +361,7 @@ module managedInstance_key 'keys/deploy.bicep' = [for (key, index) in keys: {
     name: contains(key, 'name') ? key.name : ''
     serverKeyType: contains(key, 'serverKeyType') ? key.serverKeyType : 'ServiceManaged'
     uri: contains(key, 'uri') ? key.uri : ''
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
 }]
 
@@ -369,6 +373,7 @@ module managedInstance_encryptionProtector 'encryptionProtector/deploy.bicep' = 
     name: contains(encryptionProtectorObj, 'name') ? encryptionProtectorObj.serverKeyType : 'current'
     serverKeyType: contains(encryptionProtectorObj, 'serverKeyType') ? encryptionProtectorObj.serverKeyType : 'ServiceManaged'
     autoRotationEnabled: contains(encryptionProtectorObj, 'autoRotationEnabled') ? encryptionProtectorObj.autoRotationEnabled : true
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
 }
 
@@ -379,6 +384,7 @@ module managedInstance_administrator 'administrators/deploy.bicep' = if (!empty(
     login: administratorsObj.name
     sid: administratorsObj.sid
     tenantId: contains(administratorsObj, 'tenantId') ? administratorsObj.tenantId : ''
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
 }
 

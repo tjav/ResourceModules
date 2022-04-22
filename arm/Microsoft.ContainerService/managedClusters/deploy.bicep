@@ -363,19 +363,19 @@ resource defaultTelemetry 'Microsoft.Resources/deployments@2021-04-01' = if (ena
   }
 }
 
-resource managedCluster 'Microsoft.ContainerService/managedClusters@2021-11-01-preview' = {
+resource managedCluster 'Microsoft.ContainerService/managedClusters@2022-01-01' = {
   name: name
   location: location
   tags: (empty(tags) ? null : tags)
   identity: identity
+  sku: {
+    name: 'Basic'
+    tier: aksClusterSkuTier
+  }
   properties: {
     kubernetesVersion: (empty(aksClusterKubernetesVersion) ? null : aksClusterKubernetesVersion)
     dnsPrefix: aksClusterDnsPrefix
     agentPoolProfiles: primaryAgentPoolProfile
-    sku: {
-      name: 'Basic'
-      tier: aksClusterSkuTier
-    }
     linuxProfile: (empty(aksClusterSshPublicKey) ? null : aksClusterLinuxProfile)
     servicePrincipalProfile: (empty(aksServicePrincipalProfile) ? null : aksServicePrincipalProfile)
     addonProfiles: {
@@ -514,6 +514,7 @@ module managedCluster_agentPools 'agentPools/deploy.bicep' = [for (agentPool, in
     vmSize: contains(agentPool, 'vmSize') ? agentPool.vmSize : 'Standard_D2s_v3'
     vnetSubnetId: contains(agentPool, 'vnetSubnetId') ? agentPool.vnetSubnetId : ''
     workloadRuntime: contains(agentPool, 'workloadRuntime') ? agentPool.workloadRuntime : ''
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
 }]
 

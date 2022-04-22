@@ -5,8 +5,8 @@ param name string = take(toLower(uniqueString(resourceGroup().name)), 10)
 @description('Optional. Specifies whether the computer names should be transformed. The transformation is performed on all computer names. Available transformations are \'none\' (Default), \'uppercase\' and \'lowercase\'.')
 param vmComputerNamesTransformation string = 'none'
 
-@description('Optional. Specifies the size for the VMs')
-param vmSize string = 'Standard_D2s_v3'
+@description('Required. Specifies the size for the VMs')
+param vmSize string
 
 @description('Optional. This property can be used by user in the request to enable or disable the Host Encryption for the virtual machine. This will enable the encryption for all the disks including Resource/Temp disk at host itself. For security reasons, it is recommended to set encryptionAtHost to True. Restrictions: Cannot be enabled if Azure Disk Encryption (guest-VM encryption using bitlocker/DM-Crypt) is enabled on your VMs.')
 param encryptionAtHost bool = true
@@ -206,6 +206,10 @@ param extensionCustomScriptConfig object = {
   fileData: []
 }
 
+@description('Optional. Any object that contains the extension specific protected settings')
+@secure()
+param extensionCustomScriptProtectedSetting object = {}
+
 // Shared parameters
 @description('Optional. Location for all resources.')
 param location string = resourceGroup().location
@@ -369,7 +373,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-07-01' = {
       vmSize: vmSize
     }
     securityProfile: {
-      encryptionAtHost: encryptionAtHost
+      encryptionAtHost: encryptionAtHost ? encryptionAtHost : null
       securityType: securityType
       uefiSettings: securityType == 'TrustedLaunch' ? {
         secureBootEnabled: secureBootEnabled
@@ -467,6 +471,7 @@ module vm_domainJoinExtension 'extensions/deploy.bicep' = if (extensionDomainJoi
     protectedSettings: {
       Password: extensionDomainJoinPassword
     }
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
 }
 
@@ -481,6 +486,7 @@ module vm_microsoftAntiMalwareExtension 'extensions/deploy.bicep' = if (extensio
     autoUpgradeMinorVersion: contains(extensionAntiMalwareConfig, 'autoUpgradeMinorVersion') ? extensionAntiMalwareConfig.autoUpgradeMinorVersion : true
     enableAutomaticUpgrade: contains(extensionAntiMalwareConfig, 'enableAutomaticUpgrade') ? extensionAntiMalwareConfig.enableAutomaticUpgrade : false
     settings: extensionAntiMalwareConfig.settings
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
 }
 
@@ -505,6 +511,7 @@ module vm_microsoftMonitoringAgentExtension 'extensions/deploy.bicep' = if (exte
     protectedSettings: {
       workspaceKey: !empty(monitoringWorkspaceId) ? vm_logAnalyticsWorkspace.listKeys().primarySharedKey : ''
     }
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
 }
 
@@ -518,6 +525,7 @@ module vm_dependencyAgentExtension 'extensions/deploy.bicep' = if (extensionDepe
     typeHandlerVersion: contains(extensionDependencyAgentConfig, 'typeHandlerVersion') ? extensionDependencyAgentConfig.typeHandlerVersion : '9.5'
     autoUpgradeMinorVersion: contains(extensionDependencyAgentConfig, 'autoUpgradeMinorVersion') ? extensionDependencyAgentConfig.autoUpgradeMinorVersion : true
     enableAutomaticUpgrade: contains(extensionDependencyAgentConfig, 'enableAutomaticUpgrade') ? extensionDependencyAgentConfig.enableAutomaticUpgrade : true
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
 }
 
@@ -531,6 +539,7 @@ module vm_networkWatcherAgentExtension 'extensions/deploy.bicep' = if (extension
     typeHandlerVersion: contains(extensionNetworkWatcherAgentConfig, 'typeHandlerVersion') ? extensionNetworkWatcherAgentConfig.typeHandlerVersion : '1.4'
     autoUpgradeMinorVersion: contains(extensionNetworkWatcherAgentConfig, 'autoUpgradeMinorVersion') ? extensionNetworkWatcherAgentConfig.autoUpgradeMinorVersion : true
     enableAutomaticUpgrade: contains(extensionNetworkWatcherAgentConfig, 'enableAutomaticUpgrade') ? extensionNetworkWatcherAgentConfig.enableAutomaticUpgrade : false
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
 }
 
@@ -546,6 +555,7 @@ module vm_desiredStateConfigurationExtension 'extensions/deploy.bicep' = if (ext
     enableAutomaticUpgrade: contains(extensionDSCConfig, 'enableAutomaticUpgrade') ? extensionDSCConfig.enableAutomaticUpgrade : false
     settings: contains(extensionDSCConfig, 'settings') ? extensionDSCConfig.settings : {}
     protectedSettings: contains(extensionDSCConfig, 'protectedSettings') ? extensionDSCConfig.protectedSettings : {}
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
 }
 
@@ -562,7 +572,8 @@ module vm_customScriptExtension 'extensions/deploy.bicep' = if (extensionCustomS
     settings: {
       fileUris: [for fileData in extensionCustomScriptConfig.fileData: contains(fileData, 'storageAccountId') ? '${fileData.uri}?${listAccountSas(fileData.storageAccountId, '2019-04-01', accountSasProperties).accountSasToken}' : fileData.uri]
     }
-    protectedSettings: contains(extensionCustomScriptConfig, 'protectedSettings') ? extensionCustomScriptConfig.protectedSettings : {}
+    protectedSettings: extensionCustomScriptProtectedSetting
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
   dependsOn: [
     vm_desiredStateConfigurationExtension
@@ -581,6 +592,7 @@ module vm_diskEncryptionExtension 'extensions/deploy.bicep' = if (extensionDiskE
     enableAutomaticUpgrade: contains(extensionDiskEncryptionConfig, 'enableAutomaticUpgrade') ? extensionDiskEncryptionConfig.enableAutomaticUpgrade : false
     forceUpdateTag: contains(extensionDiskEncryptionConfig, 'forceUpdateTag') ? extensionDiskEncryptionConfig.forceUpdateTag : '1.0'
     settings: extensionDiskEncryptionConfig.settings
+    enableDefaultTelemetry: enableDefaultTelemetry
   }
   dependsOn: [
     vm_customScriptExtension

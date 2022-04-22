@@ -210,7 +210,7 @@ function Set-ParametersSection {
             # Add external single quotes to all default values of type string except for those using functions
             $defaultValue = ($parameter.defaultValue -is [array]) ? ('[{0}]' -f ($parameter.defaultValue -join ', ')) : (($parameter.defaultValue -is [hashtable]) ? '{object}' : (($parameter.defaultValue -is [string]) -and ($parameter.defaultValue -notmatch '\[\w+\(.*\).*\]') ? '''' + $parameter.defaultValue + '''' : $parameter.defaultValue))
             $allowedValue = ($parameter.allowedValues -is [array]) ? ('[{0}]' -f ($parameter.allowedValues -join ', ')) : (($parameter.allowedValues -is [hashtable]) ? '{object}' : $parameter.allowedValues)
-            $description = $parameter.metadata.description
+            $description = $parameter.metadata.description.Replace("`r`n", '<p>').Replace("`n", '<p>')
 
             # Update parameter table content based on parameter category
             ## Remove category from parameter description
@@ -299,7 +299,8 @@ function Set-OutputsSection {
         )
         foreach ($outputName in ($templateFileContent.outputs.Keys | Sort-Object -Culture en-US)) {
             $output = $TemplateFileContent.outputs[$outputName]
-            $SectionContent += ("| ``{0}`` | {1} | {2} |" -f $outputName, $output.type, $output.metadata.description)
+            $description = $output.metadata.description.Replace("`r`n", '<p>').Replace("`n", '<p>')
+            $SectionContent += ("| ``{0}`` | {1} | {2} |" -f $outputName, $output.type, $description)
         }
     } else {
         $SectionContent = [System.Collections.ArrayList]@(
@@ -475,6 +476,10 @@ Supports both ARM & bicep templates.
 .PARAMETER TemplateFilePath
 Mandatory. The path to the template to update
 
+.PARAMETER TemplateFileContent
+Optional. The template file content to process. If not provided, the template file content will be read from the TemplateFilePath file.
+Using this property is useful if you already compiled the bicep template before invoking this function and want to avoid re-compiling it.
+
 .PARAMETER ReadMeFilePath
 Optional. The path to the readme to update. If not provided assumes a 'readme.md' file in the same folder as the template
 
@@ -493,13 +498,18 @@ Set-ModuleReadMe -TemplateFilePath 'C:/Microsoft.Network/loadBalancers/deploy.bi
 Generate the Module ReadMe only for specific sections. Updates only the sections `Parameters` & `Outputs`. Other sections remain untouched.
 
 .EXAMPLE
+Set-ModuleReadMe -TemplateFilePath 'C:/Microsoft.Network/loadBalancers/deploy.bicep' -TemplateFileContent @{...}
+
+(Re)Generate the readme file for template 'loadBalancer' based on the content provided in the TemplateFileContent parameter
+
+.EXAMPLE
 Set-ModuleReadMe -TemplateFilePath 'C:/Microsoft.Network/loadBalancers/deploy.bicep' -ReadMeFilePath 'C:/differentFolder'
 
 Generate the Module ReadMe files into a specific folder path
 
 .EXAMPLE
 $templatePaths = (Get-ChildItem 'C:/Microsoft.Network' -Filter 'deploy.bicep' -Recurse).FullName
-$templatePaths | ForEach-Object { Set-ModuleReadMe -TemplateFilePath $_ }
+$templatePaths | ForEach-Object -Parallel { . '<PathToRepo>/utilities/tools/Set-ModuleReadMe.ps1' ; Set-ModuleReadMe -TemplateFilePath $_ }
 
 Generate the Module ReadMe for any template in a folder path
 
@@ -514,6 +524,9 @@ function Set-ModuleReadMe {
     param (
         [Parameter(Mandatory)]
         [string] $TemplateFilePath,
+
+        [Parameter(Mandatory = $false)]
+        [Hashtable] $TemplateFileContent,
 
         [Parameter(Mandatory = $false)]
         [string] $ReadMeFilePath = (Join-Path (Split-Path $TemplateFilePath -Parent) 'readme.md'),
@@ -540,10 +553,12 @@ function Set-ModuleReadMe {
     # Check template
     $null = Test-Path $TemplateFilePath -ErrorAction Stop
 
-    if ((Split-Path -Path $TemplateFilePath -Extension) -eq '.bicep') {
-        $templateFileContent = az bicep build --file $TemplateFilePath --stdout | ConvertFrom-Json -AsHashtable
-    } else {
-        $templateFileContent = ConvertFrom-Json (Get-Content $TemplateFilePath -Encoding 'utf8' -Raw) -ErrorAction Stop -AsHashtable
+    if (-not $TemplateFileContent) {
+        if ((Split-Path -Path $TemplateFilePath -Extension) -eq '.bicep') {
+            $templateFileContent = az bicep build --file $TemplateFilePath --stdout | ConvertFrom-Json -AsHashtable
+        } else {
+            $templateFileContent = ConvertFrom-Json (Get-Content $TemplateFilePath -Encoding 'utf8' -Raw) -ErrorAction Stop -AsHashtable
+        }
     }
 
     $fullResourcePath = (Split-Path $TemplateFilePath -Parent).Replace('\', '/').split('/arm/')[1]
