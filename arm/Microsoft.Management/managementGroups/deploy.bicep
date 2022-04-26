@@ -44,17 +44,23 @@ resource managementGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
   }
 }
 
-module managementGroup_rbac '.bicep/nested_rbac.bicep' = [for (roleAssignment, index) in roleAssignments: {
-  name: '${uniqueString(deployment().name)}-ManagementGroup-Rbac-${index}'
+module managementGroup_rbac '.bicep/intermediate.bicep' = {
+  name: '${uniqueString(deployment().name)}-ManagementGroup-Rbac-Imd'
   params: {
-    description: contains(roleAssignment, 'description') ? roleAssignment.description : ''
-    principalIds: roleAssignment.principalIds
-    principalType: contains(roleAssignment, 'principalType') ? roleAssignment.principalType : ''
-    roleDefinitionIdOrName: roleAssignment.roleDefinitionIdOrName
     resourceId: managementGroup.id
+    roleAssignments: roleAssignments
   }
-  scope: az.managementGroup(managementGroup.name)
-}]
+}
+// module managementGroup_rbac '.bicep/nested_rbac.bicep' = [for (roleAssignment, index) in roleAssignments: {
+//   name: '${uniqueString(deployment().name)}-ManagementGroup-Rbac-${index}'
+//   params: {
+//     description: contains(roleAssignment, 'description') ? roleAssignment.description : ''
+//     principalIds: roleAssignment.principalIds
+//     principalType: contains(roleAssignment, 'principalType') ? roleAssignment.principalType : ''
+//     roleDefinitionIdOrName: roleAssignment.roleDefinitionIdOrName
+//     resourceId: managementGroup.id
+//   }
+// }]
 
 @description('The name of the management group')
 output name string = managementGroup.name
