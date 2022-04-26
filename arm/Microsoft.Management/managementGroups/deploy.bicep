@@ -53,7 +53,7 @@ module managementGroup_rbac '.bicep/nested_rbac.bicep' = [for (roleAssignment, i
     roleDefinitionIdOrName: roleAssignment.roleDefinitionIdOrName
     resourceId: managementGroup.id
   }
-  scope: managementGroup
+  scope: az.managementGroup(managementGroup.name)
 }]
 
 @description('The name of the management group')
