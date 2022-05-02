@@ -19,7 +19,11 @@ param azureSkuTier string = 'Standard'
 param vNetId string
 
 @description('Optional. Specifies the resource ID of the existing public IP to be leveraged by Azure Firewall. If not provided, an Azure Public IP will be created')
+// param publicIPAddressIds array = []
 param publicIPAddressId string = ''
+
+@description('Optional. Specifies if a public ip should be created by default if one is not provided')
+param isCreateDefaultPublicIP bool = true
 
 @description('Optional. Specifies the properties of the public IP to create and be used by Azure Firewall. If it\'s not provided and publicIPAddressId is empty, a \'-pip\' suffix will be appended to the Firewall\'s name.')
 param publicIPAddressObject object = {}
@@ -143,7 +147,8 @@ resource defaultTelemetry 'Microsoft.Resources/deployments@2021-04-01' = if (ena
 }
 
 // create a public ip address
-module publicIPAddress '.bicep/nested_publicIPAddress.bicep' = if (empty(publicIPAddressId)) {
+// module publicIPAddress '.bicep/nested_publicIPAddress.bicep' = if (empty(publicIPAddressIds) && isCreateDefaultPublicIP) {
+module publicIPAddress '.bicep/nested_publicIPAddress.bicep' = if (empty(publicIPAddressId) && isCreateDefaultPublicIP) {
   name: '${uniqueString(deployment().name, location)}-Firewall-PIP'
   params: {
     name: contains(publicIPAddressObject, 'name') ? (!(empty(publicIPAddressObject.name)) ? publicIPAddressObject.name : '${name}-pip') : '${name}-pip'
@@ -195,8 +200,26 @@ resource azureFirewall 'Microsoft.Network/azureFirewalls@2021-05-01' = {
           subnet: {
             id: '${vNetId}/subnets/AzureFirewallSubnet' // The subnet name must be AzureFirewallSubnet
           }
+          // publicIPAddress: {
+          //   // id: !(empty(publicIPAddressIds)) ? publicIPAddressId : publicIPAddress.outputs.resourceId //Use existing or new public ip  todo build the array first and then insert
+          //   id: !(empty(publicIPAddressId)) ? publicIPAddressId : publicIPAddress.outputs.resourceId //Use existing or new public ip  todo build the array first and then insert
+          // }
+        }
+      }
+      {
+        name: 'IpConf2'
+        properties: {
           publicIPAddress: {
-            id: !(empty(publicIPAddressId)) ? publicIPAddressId : publicIPAddress.outputs.resourceId //Use existing or new public ip
+            id: '/subscriptions/d8656ecf-9955-40f8-9561-adc129f66e3c/resourceGroups/test_group/providers/Microsoft.Network/publicIPAddresses/testpipfw' //Use existing or new public ip
+          }
+        }
+      }
+      {
+        name: 'IpConf3'
+        properties: {
+          publicIPAddress: {
+            // id: !(empty(publicIPAddressIds)) ? publicIPAddressId : publicIPAddress.outputs.resourceId //Use existing or new public ip  todo build the array first and then insert
+            id: !(empty(publicIPAddressId)) ? publicIPAddressId : publicIPAddress.outputs.resourceId //Use existing or new public ip  todo build the array first and then insert
           }
         }
       }
