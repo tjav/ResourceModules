@@ -62,6 +62,22 @@ param systemAssignedIdentity bool = false
 @description('Optional. The ID(s) to assign to the resource.')
 param userAssignedIdentities object = {}
 
+@description('Optional. Enabling/Disabling the Double Encryption state.')
+@allowed([
+  'Disabled'
+  'Enabled'
+])
+param infrastructureEncryption string = 'Disabled'
+
+@description('Optional. User identity used for Customer Managed Key (CMK). If you set keyUri in keyVaultProperties either \'encryptionUserAssignedIdentity\' or \'encryptionSystemAssignedIdentity\'is required. Mutually exclusive with \'encryptionSystemAssignedIdentity\' parameter.')
+param encryptionUserAssignedIdentity string = ''
+
+@description('Optional. System assigned identity used for Customer Managed Key (CMK). If you set keyUri in keyVaultProperties either \'encryptionSystemAssignedIdentity\' or \'encryptionUserAssignedIdentity\'  is required. Mutually exclusive with \'encryptionUserAssignedIdentity\' parameter.')
+param encryptionSystemAssignedIdentity bool = false
+
+@description('Optional. The key uri of the Customer Managed Key (CMK)')
+param keyUri string = ''
+
 @description('Optional. Tags of the Recovery Service Vault resource.')
 param tags object = {}
 
@@ -157,7 +173,18 @@ resource rsv 'Microsoft.RecoveryServices/vaults@2021-11-01-preview' = {
     name: 'RS0'
     tier: 'Standard'
   }
-  properties: {}
+  properties: {
+    encryption: {
+      infrastructureEncryption: infrastructureEncryption
+      kekIdentity: empty(keyUri) ? null : {
+        userAssignedIdentity: encryptionUserAssignedIdentity
+        useSystemAssignedIdentity: encryptionSystemAssignedIdentity
+      }
+      keyVaultProperties: empty(keyUri) ? null : {
+        keyUri: keyUri
+      }
+    }
+  }
 }
 
 module rsv_replicationFabrics 'replicationFabrics/deploy.bicep' = [for (replicationFabric, index) in replicationFabrics: {

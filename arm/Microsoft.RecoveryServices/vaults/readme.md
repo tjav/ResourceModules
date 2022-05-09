@@ -47,6 +47,10 @@ This module deploys a recovery service vault.
 | `diagnosticStorageAccountId` | string | `''` |  | Resource ID of the diagnostic storage account. |
 | `diagnosticWorkspaceId` | string | `''` |  | Resource ID of the diagnostic log analytics workspace. |
 | `enableDefaultTelemetry` | bool | `True` |  | Enable telemetry via the Customer Usage Attribution ID (GUID). |
+| `encryptionUserAssignedIdentity` | string | `''` |  | User identity used for Customer Managed Key (CMK). If you set keyUri in keyVaultProperties either \'encryptionUserAssignedIdentity\' or \'encryptionSystemAssignedIdentity\'is required. Mutually exclusive with \'encryptionSystemAssignedIdentity\' parameter. |
+| `encryptionSystemAssignedIdentity` | bool | `false` |  | System assigned identity used for Customer Managed Key (CMK). If you set keyUri in keyVaultProperties either \'encryptionSystemAssignedIdentity\' or \'encryptionUserAssignedIdentity\'  is required. Mutually exclusive with \'encryptionUserAssignedIdentity\' parameter.|
+| `infrastructureEncryption` | string |  `Disabled` |  `[Disabled, Enabled]` | Enabling/Disabling the Double Encryption state. |
+| `keyUri` | string |  `''` | | The key uri of the Customer Managed Key (CMK). |
 | `location` | string | `[resourceGroup().location]` |  | Location for all resources. |
 | `lock` | string | `'NotSpecified'` | `[CanNotDelete, NotSpecified, ReadOnly]` | Specify the type of lock. |
 | `protectionContainers` | _[protectionContainers](protectionContainers/readme.md)_ array | `[]` |  | List of all protection containers. |
