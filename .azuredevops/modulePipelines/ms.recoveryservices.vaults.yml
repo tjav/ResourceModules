@@ -51,6 +51,8 @@ stages:
               templateFilePath: $(modulePath)/deploy.bicep
             - path: $(modulePath)/.parameters/dr.parameters.json
               templateFilePath: $(modulePath)/deploy.bicep
+            - path: $(modulePath)/.parameters/encr.parameters.json
+              templateFilePath: $(modulePath)/deploy.bicep
 
   - stage: Publishing
     displayName: Publishing
